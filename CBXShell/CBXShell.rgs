@@ -1,0 +1,80 @@
+HKCU
+{
+	NoRemove Software
+	{
+		NoRemove Classes
+		{
+			NoRemove .cbz
+			{
+				shellex
+				{
+					{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1} = s '{9E6ECB90-5A61-42BD-B851-D3297D9C7F39}'
+					{00021500-0000-0000-C000-000000000046} = s '{9E6ECB90-5A61-42BD-B851-D3297D9C7F39}'
+				}
+			}
+			NoRemove .cbr
+			{
+				shellex
+				{
+					{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1} = s '{9E6ECB90-5A61-42BD-B851-D3297D9C7F39}'
+					{00021500-0000-0000-C000-000000000046} = s '{9E6ECB90-5A61-42BD-B851-D3297D9C7F39}'
+				}
+			}
+		}
+	}	
+}
+
+
+HKLM
+{
+    NoRemove Software
+    {
+
+
+		NoRemove Classes
+		{
+			CBXShell.CBXShell.1 = s 'CBXShell Class'
+			{
+				CLSID = s '{9E6ECB90-5A61-42BD-B851-D3297D9C7F39}'
+			}
+			CBXShell.CBXShell = s 'CBXShell Class'
+			{
+				CLSID = s '{9E6ECB90-5A61-42BD-B851-D3297D9C7F39}'
+				CurVer = s 'CBXShell.CBXShell.1'
+			}
+			NoRemove CLSID
+			{
+				ForceRemove {9E6ECB90-5A61-42BD-B851-D3297D9C7F39} = s 'CBXShell Class'
+				{
+					ProgID = s 'CBXShell.CBXShell.1'
+					VersionIndependentProgID = s 'CBXShell.CBXShell'
+					ForceRemove 'Programmable'
+					InprocServer32 = s '%MODULE%'
+					{
+						val ThreadingModel = s 'Apartment'
+					}
+					'TypeLib' = s '{9E6ECB90-5A61-42BD-B851-D3297D9C7F39}'
+				}
+			}
+		}
+
+		NoRemove Microsoft
+		{
+			NoRemove Windows
+			{
+				NoRemove CurrentVersion
+				{
+					NoRemove 'Shell Extensions'
+					{
+						NoRemove Approved
+						{
+							val {9E6ECB90-5A61-42BD-B851-D3297D9C7F39} = s 'CBXShell Class'
+						}
+					}
+				}
+			}
+		}
+
+
+    }
+}

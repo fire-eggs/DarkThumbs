@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{a2152652-25c3-4e19-be72-348ef0d71a59}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{273fdec6-dec0-4001-92c7-f3fc4017eb90}</UniqueIdentifier>
+      <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
+    </Filter>
+    <Filter Include="COM">
+      <UniqueIdentifier>{bfe08d86-a8d3-4230-806f-baf1db1ed3e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CBX">
+      <UniqueIdentifier>{54a40bde-95f3-49d8-ad0a-0874355d7b6c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty">
+      <UniqueIdentifier>{003fd1f2-6481-474d-8a47-42942977afeb}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CBXShell.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StdAfx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CBXShellClass.cpp">
+      <Filter>COM</Filter>
+    </ClCompile>
+    <ClCompile Include="unzip.cpp">
+      <Filter>CBX</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="StdAfx.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CBXShellClass.h">
+      <Filter>COM</Filter>
+    </ClInclude>
+    <ClInclude Include="cbxArchive.h">
+      <Filter>CBX</Filter>
+    </ClInclude>
+    <ClInclude Include="unrar.h">
+      <Filter>CBX</Filter>
+    </ClInclude>
+    <ClInclude Include="unzip.h">
+      <Filter>CBX</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="CBXShell.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CBXShell.def">
+      <Filter>COM</Filter>
+    </None>
+    <None Include="CBXShell.rgs">
+      <Filter>COM</Filter>
+    </None>
+    <None Include="packages.config" />
+    <None Include="UnRAR.dll">
+      <Filter>3rdParty</Filter>
+    </None>
+    <None Include="UnRAR64.dll">
+      <Filter>3rdParty</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Midl Include="CBXShell.idl">
+      <Filter>COM</Filter>
+    </Midl>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\zip.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+</Project>

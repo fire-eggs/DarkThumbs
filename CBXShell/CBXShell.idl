@@ -1,0 +1,40 @@
+// CBXShell.idl : IDL source for CBXShell.dll
+//
+
+// This file will be processed by the MIDL tool to
+// produce the type library (CBXShell.tlb) and marshalling code.
+
+import "oaidl.idl";
+import "ocidl.idl";
+	
+	[
+		object,
+		uuid(677D0B3B-E0A8-4ECC-BD7E-1BCC96E388EA),
+		dual,
+		helpstring("ICBXShell Interface"),
+		pointer_default(unique)
+	]
+	interface ICBXShell : IDispatch
+	{
+	};
+
+[
+	uuid(FC1558B6-3992-4ACE-B032-EB3273751A1B),
+	version(1.0),
+	helpstring("CBXShell 1.0 Type Library")
+]
+library CBXSHELLLib
+{
+	importlib("stdole32.tlb");
+	importlib("stdole2.tlb");
+
+	
+	[
+		uuid(9E6ECB90-5A61-42BD-B851-D3297D9C7F39),
+		helpstring("CBXShell Class")
+	]
+	coclass CBXShell
+	{
+		[default] interface ICBXShell;
+	};
+};
