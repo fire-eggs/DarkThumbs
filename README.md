@@ -17,4 +17,4 @@ Icons made by [Those Icons](https://www.flaticon.com/authors/those-icons) from [
 
 ### Future Updates
 Looking to do some QOL updates, like updating things that say CBXShell to DarkThumbs and supporting WebP. 
-If you have some time and C experience, please feel free to submit edits and we will be happy to push them!
+If you have some time and C++ experience, please feel free to submit edits and we will be happy to review & merge them!
