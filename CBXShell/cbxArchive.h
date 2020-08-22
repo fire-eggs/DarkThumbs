@@ -919,6 +919,8 @@ private:
 		if (StrEqual(_e, _T(".png")))  return TRUE;
 		if (StrEqual(_e, _T(".tif")))  return TRUE;
 		if (StrEqual(_e, _T(".tiff"))) return TRUE;
+		// WebP support - Doc MaKS
+		if (StrEqual(_e, _T(".webp"))) return TRUE;
 	return FALSE;
 	}
 
