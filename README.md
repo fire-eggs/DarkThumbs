@@ -1,3 +1,5 @@
+![DaRkThUmBs](https://i.imgur.com/mUkcwjI.jpg)
+
 # DarkThumbs
 Thumbnail preview for EPUB, CBZ, CBR, RAR and ZIP image archives
 
@@ -6,6 +8,9 @@ Visual Studio 2019 using Windows 10 SDK
 
 ## Minimium system requirements
 Windows 7/8/8.1/10 (32/64-bit)
+
+## Screenshot
+![MoReDaRkThUmBs](https://i.imgur.com/O8oBUwt.jpg)
 
 ## Credits
 
