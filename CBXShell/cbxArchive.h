@@ -483,7 +483,7 @@ try {
 
 									// Find item tag in original opf file contents
 
-									posStart = xmlContent.find("id=\"" + coverId);
+									posStart = xmlContent.find("id=\"" + coverId + "\"");
 
 									if (posStart == std::string::npos) {
 										break;
