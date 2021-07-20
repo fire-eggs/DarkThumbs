@@ -1,10 +1,7 @@
+![DaRkThUmBs](https://i.imgur.com/mUkcwjI.jpg)
+
 # DarkThumbs
 Thumbnail preview for EPUB, CBZ, CBR, RAR and ZIP image archives
-
-Updated to fix:
-1. Windows Explorer crashing on EPUBs containing a large number of files.
-2. Improved performance creating thumbnails.
-
 
 ## Built with
 Visual Studio 2019 using Windows 10 SDK
