@@ -48,28 +48,6 @@
 
 namespace __cbx {
 
-// unused
-//template <class T> class CBuffer
-//{
-//public:
-//	CBuffer(){m_buf=NULL;}
-//	virtual ~CBuffer(){ ::CoTaskMemFree(m_buf); m_buf=NULL;}
-//public:
-//	T* Allocate(SIZE_T s, BOOL bAutozero=FALSE)
-//	{
-//		m_buf=::CoTaskMemAlloc(s*sizeof(T));//COM compatible //'new' throws
-//		if (m_buf && bAutozero) SecureZeroMemory(m_buf, s*sizeof(T));
-//	return (T*)m_buf;
-//	}
-//	operator LPVOID () {return m_buf;}
-//	operator T* () {return (T*)m_buf;}
-//private:
-//	LPVOID m_buf;
-//};
-//typedef CBuffer<BYTE> CByteBuffer;
-
-
-
 class CUnzip
 {
 public:
@@ -112,6 +90,8 @@ public:
 		long GetItemUnpackedSize() const {return ZipEntry.unc_size;}
 		DWORD GetItemAttributes() const {return ZipEntry.attr;}
 		LPCTSTR GetItemName() {return ZipEntry.name;}
+		
+		HZIP getHZIP() { return hz; }	
 
 private:
 		ZIPENTRY ZipEntry, maindirEntry;
@@ -331,68 +311,227 @@ public:
 
 	std::string GetEpubRootFile(LPCTSTR ePubFile)
 	{
+		std::string rootfile;
+
 		CUnzip _z;
-		if (!_z.Open(ePubFile)) return std::string();
-		j = _z.GetItemCount();
-		if (j == 0) return std::string();
+		if (!_z.Open(ePubFile)) return rootfile;
+		int j = _z.GetItemCount();
+		if (j == 0) return rootfile;
+
+		int dex;
+		ZIPENTRY ze;
+		FindZipItem(_z.getHZIP(), _T("META-INF/container.xml"), false, &dex, &ze);
+		if (dex < 0)
+			return rootfile;
+		
+		long itemSize = ze.unc_size;
+
+	    HGLOBAL hGContainer = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, itemSize);
+		if (!hGContainer)
+			return rootfile;
+
+		LPVOID pBuf = ::GlobalLock(hGContainer);
+		
+		bool b = false;
+		if (pBuf)
+			b = _z.UnzipItemToMembuffer(dex, pBuf, itemSize);
+
+		if (::GlobalUnlock(hGContainer) != 0 || GetLastError() != NO_ERROR || !b)
+			return rootfile;
+
+		std::string xmlContent = (char*)pBuf;
+
+		size_t posStart = xmlContent.find("rootfile ");
+
+		if (posStart == std::string::npos)
+			return rootfile;
+
+		posStart = xmlContent.find("full-path=\"", posStart);
+
+		if (posStart == std::string::npos)
+			return rootfile;
+
+		posStart += 11;
+		size_t posEnd = xmlContent.find("\"", posStart);
+
+		rootfile = xmlContent.substr(posStart, posEnd - posStart);
+		
+		return rootfile;
+	}
+
+	HRESULT ExtractEpub(HBITMAP* phBmpThumbnail)
+	{
+		std::string xmlContent, rootpath, coverfile;
+
+		std::string rootfile = GetEpubRootFile(m_cbxFile);
+
+		CUnzip _z;
+		if (!_z.Open(m_cbxFile)) return E_FAIL;
+		int j = _z.GetItemCount();
+		if (j == 0) return E_FAIL;
 
 		size_t posStart, posEnd;
 
+		CString prevname;//helper vars
+		int thumbindex = -1;
+
 		USES_CONVERSION;
 
-		std::string xmlContent, rootfile;
+		if (rootfile.length() > 0) {
 
-		// Find 
-		for (i = 0; i < j; i++)
-		{
-			if (!_z.GetItem(i)) break;
-			if (_z.ItemIsDirectory() || (_z.GetItemUnpackedSize() > CBXMEM_MAXBUFFER_SIZE)) continue;
+			posStart = rootfile.find('/');
+			if (posStart != std::string::npos) {
+				rootpath = rootfile.substr(0, posStart + 1);
+			}
 
-			std::string name = T2A(_z.GetItemName());
+			int dex;
+			ZIPENTRY ze;
+			FindZipItem(_z.getHZIP(), A2T(rootfile.c_str()), false, &dex, &ze);
+			if (dex >= 0)
+			{
+				_z.GetItem(dex);
+				int i = dex;
 
-			if (_stricmp(name.c_str(), "META-INF/container.xml") == 0) {
-				// Extract container.xml and retrieve rootfile location
-
-				HGLOBAL hGContainer = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (SIZE_T)_z.GetItemUnpackedSize());
-				if (hGContainer)
-				{
-					bool b = false;
-					LPVOID pBuf = ::GlobalLock(hGContainer);
-					if (pBuf)
-						b = _z.UnzipItemToMembuffer(i, pBuf, _z.GetItemUnpackedSize());
-
-					if (::GlobalUnlock(hGContainer) == 0 && GetLastError() == NO_ERROR)
+					HGLOBAL hGContainer = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (SIZE_T)_z.GetItemUnpackedSize());
+					if (hGContainer)
 					{
-						if (b)
+						bool b = false;
+						LPVOID pBuf = ::GlobalLock(hGContainer);
+						if (pBuf)
+							b = _z.UnzipItemToMembuffer(i, pBuf, _z.GetItemUnpackedSize());
+
+						if (::GlobalUnlock(hGContainer) == 0 && GetLastError() == NO_ERROR)
 						{
-							xmlContent = (char*)pBuf;
+							if (b)
+							{
+								// Find meta tag for cover
 
-							posStart = xmlContent.find("rootfile ");
+								std::string xmlContent, coverTag, coverId, itemTag;
 
-							if (posStart == std::string::npos) {
-								break;
+								xmlContent = (char*)pBuf;
+
+								posStart = xmlContent.find("name=\"cover\"");
+
+								if (posStart == std::string::npos) {
+									goto test_coverfile;
+								}
+
+								posStart = xmlContent.find_last_of("<", posStart);
+								posEnd = xmlContent.find(">", posStart);
+
+								coverTag = xmlContent.substr(posStart, posEnd - posStart + 1);
+
+								// Find cover item id
+
+								posStart = coverTag.find("content=\"");
+
+								if (posStart == std::string::npos) {
+									goto test_coverfile;
+								}
+
+								posStart += 9;
+								posEnd = coverTag.find("\"", posStart);
+
+								coverId = coverTag.substr(posStart, posEnd - posStart);
+
+								// Find item tag in original opf file contents
+
+								posStart = xmlContent.find("id=\"" + coverId + "\"");
+
+								if (posStart == std::string::npos) {
+									goto test_coverfile;
+								}
+
+								posStart = xmlContent.find_last_of("<", posStart);
+								posEnd = xmlContent.find(">", posStart);
+
+								itemTag = xmlContent.substr(posStart, posEnd - posStart + 1);
+
+								// Find cover path in item tag
+
+								posStart = itemTag.find("href=\"");
+
+								if (posStart == std::string::npos) {
+									goto test_coverfile;
+								}
+
+								posStart += 6;
+								posEnd = itemTag.find("\"", posStart);
+
+								if (posEnd == std::string::npos) {
+									goto test_coverfile;
+								}
+
+								coverfile = rootpath + itemTag.substr(posStart, posEnd - posStart);
+								ReplaceStringInPlace(coverfile, "%20", " ");
+								goto test_coverfile;
 							}
-
-							posStart = xmlContent.find("full-path=\"", posStart);
-
-							if (posStart == std::string::npos) {
-								break;
-							}
-
-							posStart += 11;
-							posEnd = xmlContent.find("\"", posStart);
-
-							rootfile = xmlContent.substr(posStart, posEnd - posStart);
-
-							break;
 						}
 					}
-					//GlobalFree(hGContainer);//autofreed
+				}
+			
+		}
+
+test_coverfile:
+		if (coverfile.empty()) {
+
+			// No cover file specified, do a brute-force search for the first file with "cover" in the name.
+			for (int i = 0; i < j; i++) {
+				if (!_z.GetItem(i)) break;
+				if (_z.ItemIsDirectory() || (_z.GetItemUnpackedSize() > CBXMEM_MAXBUFFER_SIZE)) continue;
+				if ((_z.GetItemPackedSize() == 0) || (_z.GetItemUnpackedSize() == 0)) continue;
+
+				LPCTSTR nm = _z.GetItemName();
+				if (IsImage(nm))
+				{
+					if (_tcsstr(nm, _T("cover")) != NULL ||
+						_tcsstr(nm, _T("COVER")) != NULL ||
+						_tcsstr(nm, _T("Cover")) != NULL)
+					{
+						coverfile = T2A(nm);
+						break;
+					}
 				}
 			}
 		}
 
-		return rootfile;
+		if (coverfile.length() > 0) {
+
+			int thumbindex;
+			ZIPENTRY ze;
+			ZRESULT res = FindZipItem(_z.getHZIP(), A2T(coverfile.c_str()), true, &thumbindex, &ze);
+			
+			if (thumbindex < 0) return E_FAIL;
+			//go to thumb index
+			if (!_z.GetItem(thumbindex)) return E_FAIL;
+
+			//create thumb			//GHND
+			HGLOBAL hG = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (SIZE_T)_z.GetItemUnpackedSize());
+			if (hG)
+			{
+				bool b = false;
+				LPVOID pBuf = ::GlobalLock(hG);
+				if (pBuf)
+					b = _z.UnzipItemToMembuffer(thumbindex, pBuf, _z.GetItemUnpackedSize());
+
+				if (::GlobalUnlock(hG) == 0 && GetLastError() == NO_ERROR)
+				{
+					if (b)
+					{
+						IStream* pIs = NULL;
+						if (S_OK == CreateStreamOnHGlobal(hG, TRUE, (LPSTREAM*)&pIs))//autofree hG
+						{
+							*phBmpThumbnail = ThumbnailFromIStream(pIs, &m_thumbSize);
+							pIs->Release();
+							pIs = NULL;
+						}
+					}
+				}
+			}
+			//GlobalFree(hG);//autofreed
+			return ((*phBmpThumbnail) ? S_OK : E_FAIL);
+		}
+		return E_FAIL;
 	}
 
 	////////////////////////////////////
@@ -406,199 +545,8 @@ try {
 		{
 		case CBXTYPE_EPUB:
 		{
-			std::string xmlContent, rootpath, rootfile, coverfile;
-
-			rootfile = GetEpubRootFile(m_cbxFile);
-
-			CUnzip _z;
-			if (!_z.Open(m_cbxFile)) return E_FAIL;
-			j = _z.GetItemCount();
-			if (j == 0) return E_FAIL;
-
-			size_t posStart, posEnd;
-
-			CString prevname;//helper vars
-			int thumbindex = -1;
-
-			USES_CONVERSION;
-
-			if (rootfile.length() > 0) {
-
-				posStart = rootfile.find('/');
-				if (posStart != std::string::npos) {
-					rootpath = rootfile.substr(0, posStart + 1);
-				}
-
-				for (i = 0; i < j; i++)
-				{
-					if (!_z.GetItem(i)) break;
-					if (_z.ItemIsDirectory() || (_z.GetItemUnpackedSize() > CBXMEM_MAXBUFFER_SIZE)) continue;
-
-					std::string name;
-
-					name = CT2A(_z.GetItemName());
-
-					if (name.compare(rootfile) == 0) {
-						HGLOBAL hGContainer = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (SIZE_T)_z.GetItemUnpackedSize());
-						if (hGContainer)
-						{
-							bool b = false;
-							LPVOID pBuf = ::GlobalLock(hGContainer);
-							if (pBuf)
-								b = _z.UnzipItemToMembuffer(i, pBuf, _z.GetItemUnpackedSize());
-
-							if (::GlobalUnlock(hGContainer) == 0 && GetLastError() == NO_ERROR)
-							{
-								if (b)
-								{
-									// Find meta tag for cover
-
-									std::string xmlContent, coverTag, coverId, itemTag;
-
-									xmlContent = (char*)pBuf;
-
-									posStart = xmlContent.find("name=\"cover\"");
-
-									if (posStart == std::string::npos) {
-										break;
-									}
-
-									posStart = xmlContent.find_last_of("<", posStart);
-									posEnd = xmlContent.find(">", posStart);
-
-									coverTag = xmlContent.substr(posStart, posEnd - posStart + 1);
-
-									// Find cover item id
-
-									posStart = coverTag.find("content=\"");
-
-									if (posStart == std::string::npos) {
-										break;
-									}
-
-									posStart += 9;
-									posEnd = coverTag.find("\"", posStart);
-
-									coverId = coverTag.substr(posStart, posEnd - posStart);
-
-									// Find item tag in original opf file contents
-
-									posStart = xmlContent.find("id=\"" + coverId + "\"");
-
-									if (posStart == std::string::npos) {
-										break;
-									}
-
-									posStart = xmlContent.find_last_of("<", posStart);
-									posEnd = xmlContent.find(">", posStart);
-
-									itemTag = xmlContent.substr(posStart, posEnd - posStart + 1);
-
-									// Find cover path in item tag
-
-									posStart = itemTag.find("href=\"");
-
-									if (posStart == std::string::npos) {
-										break;
-									}
-
-									posStart += 6;
-									posEnd = itemTag.find("\"", posStart);
-
-									if (posEnd == std::string::npos) {
-										break;
-									}
-
-									coverfile = rootpath + itemTag.substr(posStart, posEnd - posStart);
-									ReplaceStringInPlace(coverfile, "%20", " ");
-									break;
-								}
-							}
-						}
-					}
-				}
-			}
-
-			if (coverfile.empty()) {
-
-				for (i = 0; i < j; i++) {
-					if (!_z.GetItem(i)) break;
-					if (_z.ItemIsDirectory() || (_z.GetItemUnpackedSize() > CBXMEM_MAXBUFFER_SIZE)) continue;
-					if ((_z.GetItemPackedSize() == 0) || (_z.GetItemUnpackedSize() == 0)) continue;
-
-					if (IsImage(_z.GetItemName()))
-					{
-						std::string imgFilename(T2A(_z.GetItemName()));
-
-						if (imgFilename.find("cover") != std::string::npos)
-						{
-							coverfile = imgFilename;
-						}
-						else if(imgFilename.find("COVER") != std::string::npos)
-						{
-							coverfile = imgFilename;
-						}
-						else if (imgFilename.find("Cover") != std::string::npos)
-						{
-							coverfile = imgFilename;
-						}
-					}
-				}
-			}
-
-			if (coverfile.length() > 0) {
-
-				for (i = 0; i < j; i++) {
-					if (!_z.GetItem(i)) break;
-					if (_z.ItemIsDirectory() || (_z.GetItemUnpackedSize() > CBXMEM_MAXBUFFER_SIZE)) continue;
-					if ((_z.GetItemPackedSize() == 0) || (_z.GetItemUnpackedSize() == 0)) continue;
-
-					if (_stricmp(T2A(_z.GetItemName()), coverfile.c_str()) == 0 && IsImage(_z.GetItemName()))
-					{
-						if (thumbindex < 0) thumbindex = i;// assign thumbindex if already sorted
-
-						if (!m_bSort) break;//if NoSort
-
-						if (prevname.IsEmpty()) prevname = _z.GetItemName();//can't compare empty string
-						//take only first alphabetical name
-						if (-1 == StrCmpLogicalW(_z.GetItemName(), prevname))
-						{
-							thumbindex = i;
-							prevname = _z.GetItemName();
-						}
-					}
-				}//for loop
-
-				if (thumbindex < 0) return E_FAIL;
-				//go to thumb index
-				if (!_z.GetItem(thumbindex)) return E_FAIL;
-
-				//create thumb			//GHND
-				HGLOBAL hG = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (SIZE_T)_z.GetItemUnpackedSize());
-				if (hG)
-				{
-					bool b = false;
-					LPVOID pBuf = ::GlobalLock(hG);
-					if (pBuf)
-						b = _z.UnzipItemToMembuffer(thumbindex, pBuf, _z.GetItemUnpackedSize());
-
-					if (::GlobalUnlock(hG) == 0 && GetLastError() == NO_ERROR)
-					{
-						if (b)
-						{
-							IStream* pIs = NULL;
-							if (S_OK == CreateStreamOnHGlobal(hG, TRUE, (LPSTREAM*)&pIs))//autofree hG
-							{
-								*phBmpThumbnail = ThumbnailFromIStream(pIs, &m_thumbSize);
-								pIs->Release();
-								pIs = NULL;
-							}
-						}
-					}
-				}
-				//GlobalFree(hG);//autofreed
-				return ((*phBmpThumbnail) ? S_OK : E_FAIL);
-			}
+			if (ExtractEpub(phBmpThumbnail) != E_FAIL)
+				return S_OK;
 
 			// something wrong with the epub, try falling back on first image in zip
 		}
@@ -733,10 +681,7 @@ catch (...){ ATLTRACE("exception in IExtractImage::Extract\n"); return S_FALSE;}
 
 	std::string GetEpubTitle(LPCTSTR ePubFile)
 	{
-		std::string rootfile, title;
-
-		rootfile = GetEpubRootFile(ePubFile);
-
+		std::string rootfile = GetEpubRootFile(ePubFile);
 		if (rootfile.empty())
 		{
 			return std::string();
@@ -744,59 +689,57 @@ catch (...){ ATLTRACE("exception in IExtractImage::Extract\n"); return S_FALSE;}
 
 		CUnzip _z;
 		if (!_z.Open(m_cbxFile)) return std::string();
-		j = _z.GetItemCount();
+		int j = _z.GetItemCount();
 		if (j == 0) return std::string();
 
-		size_t posStart, posEnd;
+		USES_CONVERSION;
 
-		for (i = 0; i < j; i++)
+		int dex;
+		ZIPENTRY ze;
+		FindZipItem(_z.getHZIP(), A2T(rootfile.c_str()), false, &dex, &ze);
+		if (dex >= 0)
 		{
-			if (!_z.GetItem(i)) break;
-			if (_z.ItemIsDirectory() || (_z.GetItemUnpackedSize() > CBXMEM_MAXBUFFER_SIZE)) continue;
+			_z.GetItem(dex);
+			int i = dex;
+			
+			HGLOBAL hGContainer = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (SIZE_T)_z.GetItemUnpackedSize());
+			if (hGContainer)
+			{
+				bool b = false;
+				LPVOID pBuf = ::GlobalLock(hGContainer);
+				if (pBuf)
+					b = _z.UnzipItemToMembuffer(i, pBuf, _z.GetItemUnpackedSize());
 
-			std::string name;
-
-			name = CT2A(_z.GetItemName());
-
-			if (name.compare(rootfile) == 0) {
-				HGLOBAL hGContainer = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (SIZE_T)_z.GetItemUnpackedSize());
-				if (hGContainer)
+				if (::GlobalUnlock(hGContainer) == 0 && GetLastError() == NO_ERROR)
 				{
-					bool b = false;
-					LPVOID pBuf = ::GlobalLock(hGContainer);
-					if (pBuf)
-						b = _z.UnzipItemToMembuffer(i, pBuf, _z.GetItemUnpackedSize());
-
-					if (::GlobalUnlock(hGContainer) == 0 && GetLastError() == NO_ERROR)
+					if (b)
 					{
-						if (b)
-						{
-							// Find <dc:title> tag
+						// Find <dc:title> tag
 
-							std::string xmlContent, coverTag, coverId, itemTag;
+						std::string xmlContent, coverTag, coverId, itemTag;
 
-							xmlContent = (char*)pBuf;
+						xmlContent = (char*)pBuf;
 
-							posStart = xmlContent.find("<dc:title>");
+						// KBR may be of the form '<dc:title id="title">'
+						size_t posStart = xmlContent.find("<dc:title");
 
-							if (posStart == std::string::npos) {
-								break;
-							}
-
-							posStart += 10;
-
-							posEnd = xmlContent.find("</dc:title>", posStart);
-
-							title = xmlContent.substr(posStart, posEnd - posStart);
-
-							break;
+						if (posStart == std::string::npos) {
+							return std::string();
 						}
+						posStart = xmlContent.find(">", posStart);
+						posStart += 1;
+
+						size_t posEnd = xmlContent.find("</dc:title>", posStart);
+
+						std::string title = xmlContent.substr(posStart, posEnd - posStart);
+						return title;
 					}
 				}
 			}
+			//			}
 		}
 
-		return title;
+		return std::string();
 	}
 
 	//////////////////////////////
@@ -919,6 +862,7 @@ private:
 		if (StrEqual(_e, _T(".png")))  return TRUE;
 		if (StrEqual(_e, _T(".tif")))  return TRUE;
 		if (StrEqual(_e, _T(".tiff"))) return TRUE;
+		if (StrEqual(_e, _T(".webp"))) return TRUE;  // NOTE: works if a webp codec is installed
 	return FALSE;
 	}
 
@@ -928,7 +872,6 @@ private:
 		if (StrEqual(szExt, _T(".zip"))) return CBXTYPE_ZIP;
 		if (StrEqual(szExt, _T(".cbr"))) return CBXTYPE_CBR;
 		if (StrEqual(szExt, _T(".rar"))) return CBXTYPE_RAR;
-		//by popular demand
 		if (StrEqual(szExt, _T(".epub"))) return CBXTYPE_EPUB;
 		if (StrEqual(szExt, _T(".phz"))) return CBXTYPE_CBZ;
 	return CBXTYPE_NONE;
@@ -1054,29 +997,6 @@ private:
 
 	return ci.Detach();
 	}
-
-	////unused
-	//HBITMAP ThumbnailFromBuffer(LPCBYTE pBuf, const ULONG dwBufSize, const LPSIZE pThumbSize)
-	//{
-	//	HBITMAP hBmp = NULL;
-	//	IStream* pIs = NULL;
-	//	HGLOBAL hG = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, dwBufSize);
-	//	if (hG)
-	//	{
-	//		if (S_OK==CreateStreamOnHGlobal(hG, TRUE, (LPSTREAM*)&pIs))
-	//		{
-	//			ULONG br;
-	//			if (S_OK==pIs->Write(pBuf, dwBufSize, &br))//transfer buffer data
-	//			{
-	//				if (br==dwBufSize) hBmp=ThumbnailFromIStream(pIs, pThumbSize);
-	//			}
-	//		}
-	//	}
-	//	GlobalFree(hG);
-	//	pIs->Release();
-	//return hBmp;
-	//}
-
 
 	__int64 FindThumbnailSortRAR(LPCTSTR pszFile)
 	{
