@@ -309,18 +309,16 @@ public:
 		}
 	}
 
-	std::string GetEpubRootFile(LPCTSTR ePubFile)
+	// EPUP3 standard: open the container.xml file to fetch the path of the rootfile
+	// Requires a successfully opened and not empty zipfile
+	std::string GetEpubRootFile(CUnzip *_z)
 	{
 		std::string rootfile;
 
-		CUnzip _z;
-		if (!_z.Open(ePubFile)) return rootfile;
-		int j = _z.GetItemCount();
-		if (j == 0) return rootfile;
-
+		// KBR 20210717 FindZipItem faster than iterating using the zip wrapper
 		int dex;
 		ZIPENTRY ze;
-		FindZipItem(_z.getHZIP(), _T("META-INF/container.xml"), false, &dex, &ze);
+		FindZipItem(_z->getHZIP(), _T("META-INF/container.xml"), false, &dex, &ze);
 		if (dex < 0)
 			return rootfile;
 		
@@ -334,7 +332,7 @@ public:
 		
 		bool b = false;
 		if (pBuf)
-			b = _z.UnzipItemToMembuffer(dex, pBuf, itemSize);
+			b = _z->UnzipItemToMembuffer(dex, pBuf, itemSize);
 
 		if (::GlobalUnlock(hGContainer) != 0 || GetLastError() != NO_ERROR || !b)
 			return rootfile;
@@ -363,12 +361,12 @@ public:
 	{
 		std::string xmlContent, rootpath, coverfile;
 
-		std::string rootfile = GetEpubRootFile(m_cbxFile);
-
 		CUnzip _z;
 		if (!_z.Open(m_cbxFile)) return E_FAIL;
 		int j = _z.GetItemCount();
 		if (j == 0) return E_FAIL;
+
+		std::string rootfile = GetEpubRootFile(&_z);
 
 		size_t posStart, posEnd;
 
@@ -384,8 +382,9 @@ public:
 				rootpath = rootfile.substr(0, posStart + 1);
 			}
 
-			int dex;
+			int dex = -1;
 			ZIPENTRY ze;
+			memset(&ze, 0, sizeof(ZIPENTRY));
 			FindZipItem(_z.getHZIP(), A2T(rootfile.c_str()), false, &dex, &ze);
 			if (dex >= 0)
 			{
@@ -495,7 +494,7 @@ test_coverfile:
 			}
 		}
 
-		if (coverfile.length() > 0) {
+		if (!coverfile.empty()) {
 
 			int thumbindex;
 			ZIPENTRY ze;
@@ -681,28 +680,34 @@ catch (...){ ATLTRACE("exception in IExtractImage::Extract\n"); return S_FALSE;}
 
 	std::string GetEpubTitle(LPCTSTR ePubFile)
 	{
-		std::string rootfile = GetEpubRootFile(ePubFile);
-		if (rootfile.empty())
-		{
-			return std::string();
-		}
-
 		CUnzip _z;
 		if (!_z.Open(m_cbxFile)) return std::string();
 		int j = _z.GetItemCount();
 		if (j == 0) return std::string();
 
+		HZIP zipHandle = _z.getHZIP();
+
+		std::string rootfile = GetEpubRootFile(&_z);
+		if (rootfile.empty())
+		{
+			return std::string();
+		}
+
 		USES_CONVERSION;
 
-		int dex;
+		HGLOBAL hGContainer = NULL;
+		std::string title;
+
+		int dex = -1;
 		ZIPENTRY ze;
-		FindZipItem(_z.getHZIP(), A2T(rootfile.c_str()), false, &dex, &ze);
-		if (dex >= 0)
+		memset(&ze, 0, sizeof(ZIPENTRY));
+		ZRESULT zr = FindZipItem(zipHandle, A2T(rootfile.c_str()), false, &dex, &ze);
+		if (zr == ZR_OK && dex >= 0)
 		{
 			_z.GetItem(dex);
 			int i = dex;
 			
-			HGLOBAL hGContainer = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (SIZE_T)_z.GetItemUnpackedSize());
+			hGContainer = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (SIZE_T)_z.GetItemUnpackedSize());
 			if (hGContainer)
 			{
 				bool b = false;
@@ -716,7 +721,7 @@ catch (...){ ATLTRACE("exception in IExtractImage::Extract\n"); return S_FALSE;}
 					{
 						// Find <dc:title> tag
 
-						std::string xmlContent, coverTag, coverId, itemTag;
+						std::string xmlContent;
 
 						xmlContent = (char*)pBuf;
 
@@ -724,22 +729,23 @@ catch (...){ ATLTRACE("exception in IExtractImage::Extract\n"); return S_FALSE;}
 						size_t posStart = xmlContent.find("<dc:title");
 
 						if (posStart == std::string::npos) {
-							return std::string();
+							goto on_exit;
 						}
 						posStart = xmlContent.find(">", posStart);
 						posStart += 1;
 
 						size_t posEnd = xmlContent.find("</dc:title>", posStart);
 
-						std::string title = xmlContent.substr(posStart, posEnd - posStart);
-						return title;
+						title = xmlContent.substr(posStart, posEnd - posStart);
 					}
 				}
 			}
-			//			}
 		}
 
-		return std::string();
+	on_exit:
+		if (hGContainer)
+			GlobalFree(hGContainer);
+		return title;
 	}
 
 	//////////////////////////////
