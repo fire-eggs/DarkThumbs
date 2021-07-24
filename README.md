@@ -1,4 +1,4 @@
-![DaRkThUmBs](https://i.imgur.com/mUkcwjI.jpg)
+The V1.1 release fixes several performance and stability issues.
 
 # DarkThumbs
 Thumbnail preview for EPUB, CBZ, CBR, RAR and ZIP image archives
@@ -19,7 +19,3 @@ Used [Invertex's CBXShell](https://github.com/Invertex/CBXShell) as a base
 
 ### Application Icon
 Icons made by [Those Icons](https://www.flaticon.com/authors/those-icons) from [Flaticon](https://www.flaticon.com/)
-
-### Future Updates
-Looking to do some QOL updates, like updating things that say CBXShell to DarkThumbs and supporting WebP. 
-If you have some time and C++ experience, please feel free to submit edits and we will be happy to review & merge them!
