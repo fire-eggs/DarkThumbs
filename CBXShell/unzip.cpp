@@ -2940,8 +2940,21 @@ int unzlocal_getByte(LUFILE *fin,int *pi)
 int unzlocal_getShort (LUFILE *fin,uLong *pX)
 {
     uLong x ;
+    unsigned short us;
     int i;
     int err;
+
+    err = (int)lufread(&us, 2, 1, fin);
+    if (err == 1)
+    {
+        *pX = (uLong)us;
+        return UNZ_OK;
+    }
+    else
+    {
+        if (luferror(fin)) return UNZ_ERRNO;
+        else return UNZ_EOF;
+    }
 
     err = unzlocal_getByte(fin,&i);
     x = (uLong)i;
@@ -2960,8 +2973,22 @@ int unzlocal_getShort (LUFILE *fin,uLong *pX)
 int unzlocal_getLong (LUFILE *fin,uLong *pX)
 {
     uLong x ;
+    uLong ul;
     int i;
     int err;
+
+    err = (int)lufread(&ul, 4, 1, fin);
+    if (err == 1)
+    {
+        *pX = (uLong)ul;
+        return UNZ_OK;
+    }
+    else
+    {
+        if (luferror(fin)) return UNZ_ERRNO;
+        else return UNZ_EOF;
+    }
+
 
     err = unzlocal_getByte(fin,&i);
     x = (uLong)i;
@@ -3190,7 +3217,6 @@ int unzlocal_GetCurrentFileInfoInternal (unzFile file, unz_file_info *pfile_info
 	s=(unz_s*)file;
 	if (lufseek(s->file,s->pos_in_central_dir+s->byte_before_the_zipfile,SEEK_SET)!=0)
 		err=UNZ_ERRNO;
-
 
 	// we check the magic
 	if (err==UNZ_OK)
