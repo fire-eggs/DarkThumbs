@@ -357,6 +357,77 @@ public:
 		return rootfile;
 	}
 
+	std::string metaCover(char *pBuf)
+	{
+		std::string xmlContent = pBuf;
+
+		// Find meta tag for cover
+		// I.e. searching for '<meta name="cover" content="cover"/>'
+
+		std::string coverTag, coverId, itemTag;
+
+		size_t posStart = xmlContent.find("name=\"cover\"");
+
+		if (posStart == std::string::npos) {
+			return coverId;
+		}
+
+		posStart = xmlContent.find_last_of("<", posStart);
+		size_t posEnd = xmlContent.find(">", posStart);
+
+		coverTag = xmlContent.substr(posStart, posEnd - posStart + 1);
+
+		// Find cover item id
+
+		posStart = coverTag.find("content=\"");
+
+		if (posStart == std::string::npos) {
+			return coverId;
+		}
+
+		posStart += 9;
+		posEnd = coverTag.find("\"", posStart);
+
+		coverId = coverTag.substr(posStart, posEnd - posStart);
+		return coverId;
+	}
+
+	std::string coverImageItem(char* pBuf, std::string rootpath) {
+
+		// find a <manifest> entry with id of "cover-image"
+		// the href is the path, relative to rootpath
+
+		std::string xmlContent = (char*)pBuf;
+		size_t posManifest = xmlContent.find("<manifest>");
+		if (posManifest == std::string::npos) return std::string();
+
+		size_t posStart = xmlContent.find("id=\"cover-image\"", posManifest);
+		if (posStart == std::string::npos) return std::string();
+
+		// found it, move backward to find owning "<item"
+		size_t posItem = xmlContent.rfind("<item ", posStart);
+		if (posItem == std::string::npos) return std::string();
+
+		// find the href
+		size_t posHref = xmlContent.find("href=\"", posItem);  // TODO this might not match in *this* item
+		posHref += 6;
+		size_t posEnd  = xmlContent.find("\"", posHref);
+
+		return rootpath + xmlContent.substr(posHref, posEnd - posHref);
+	}
+
+	std::string coverHTML(char* pBuf, std::string rootpath) {
+
+
+
+		// 1. find a <manifest> entry with id either "cover" or "icover"
+		// 2. get the href= file
+		// 3. look in the file for an <img> tag
+		// 4. the cover file is the rootpath + the path from the <img src=""> 
+
+		return std::string();
+	}
+
 	HRESULT ExtractEpub(HBITMAP* phBmpThumbnail)
 	{
 		std::string xmlContent, rootpath, coverfile;
@@ -370,107 +441,99 @@ public:
 
 		size_t posStart, posEnd;
 
-		CString prevname;//helper vars
-		int thumbindex = -1;
-
 		USES_CONVERSION;
 
-		if (rootfile.length() > 0) {
+		if (rootfile.length() <= 0)
+			goto test_coverfile;
 
-			posStart = rootfile.find('/');
-			if (posStart != std::string::npos) {
-				rootpath = rootfile.substr(0, posStart + 1);
-			}
+		posStart = rootfile.rfind('/');
+		if (posStart != std::string::npos) {
+			rootpath = rootfile.substr(0, posStart + 1);
+		}
 
-			int dex = -1;
-			ZIPENTRY ze;
-			memset(&ze, 0, sizeof(ZIPENTRY));
-			FindZipItem(_z.getHZIP(), A2T(rootfile.c_str()), false, &dex, &ze);
-			if (dex >= 0)
+		int dex = -1;
+		ZIPENTRY ze;
+		memset(&ze, 0, sizeof(ZIPENTRY));
+		FindZipItem(_z.getHZIP(), A2T(rootfile.c_str()), false, &dex, &ze);
+		if (dex < 0)
+			goto test_coverfile;
+
+		_z.GetItem(dex);
+		int i = dex;
+
+		HGLOBAL hGContainer = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (SIZE_T)_z.GetItemUnpackedSize());
+		if (hGContainer)
+		{
+			bool b = false;
+			LPVOID pBuf = ::GlobalLock(hGContainer);
+			if (pBuf)
+				b = _z.UnzipItemToMembuffer(i, pBuf, _z.GetItemUnpackedSize());
+
+			if (::GlobalUnlock(hGContainer) == 0 && GetLastError() == NO_ERROR && b)
 			{
-				_z.GetItem(dex);
-				int i = dex;
+				// Find meta tag for cover
+				// I.e. searching for '<meta name="cover" content="cover"/>'
+				std::string coverId = metaCover((char*)pBuf);
 
-					HGLOBAL hGContainer = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (SIZE_T)_z.GetItemUnpackedSize());
-					if (hGContainer)
+				if (coverId.empty()) {
+
+					// Some books [esp. calibre books] don't have a "cover" meta tag.
+					// First test for a <manifest> cover item with id="cover-image"
+					coverfile = coverImageItem((char*)pBuf, rootpath);
+					if (!coverfile.empty()) {
+						goto test_coverfile;
+					}
+
+					// Search for a <manifest> cover item and an image path via HTML file
+					coverfile = coverHTML((char*)pBuf, rootpath);
+					goto test_coverfile;
+				}
+
+				// Find item tag in original opf file contents
+				// I.e. searching for '<item href="cover.jpeg" id="cover" media-type="image/jpeg"/>'. The id
+				// value matching the "content" value from before.
+
+				xmlContent = (char*)pBuf;
+				posStart = xmlContent.find("id=\"" + coverId + "\"");
+				if (posStart != std::string::npos)
+				{
+					posStart = xmlContent.find_last_of("<", posStart);
+					posEnd = xmlContent.find(">", posStart);
+
+					std::string itemTag = xmlContent.substr(posStart, posEnd - posStart + 1);
+
+					// Find cover path in item tag
+
+					posStart = itemTag.find("href=\"");
+
+					if (posStart != std::string::npos)
 					{
-						bool b = false;
-						LPVOID pBuf = ::GlobalLock(hGContainer);
-						if (pBuf)
-							b = _z.UnzipItemToMembuffer(i, pBuf, _z.GetItemUnpackedSize());
+						posStart += 6;
+						posEnd = itemTag.find("\"", posStart);
 
-						if (::GlobalUnlock(hGContainer) == 0 && GetLastError() == NO_ERROR)
+						if (posEnd != std::string::npos)
 						{
-							if (b)
-							{
-								// Find meta tag for cover
-
-								std::string xmlContent, coverTag, coverId, itemTag;
-
-								xmlContent = (char*)pBuf;
-
-								posStart = xmlContent.find("name=\"cover\"");
-
-								if (posStart == std::string::npos) {
-									goto test_coverfile;
-								}
-
-								posStart = xmlContent.find_last_of("<", posStart);
-								posEnd = xmlContent.find(">", posStart);
-
-								coverTag = xmlContent.substr(posStart, posEnd - posStart + 1);
-
-								// Find cover item id
-
-								posStart = coverTag.find("content=\"");
-
-								if (posStart == std::string::npos) {
-									goto test_coverfile;
-								}
-
-								posStart += 9;
-								posEnd = coverTag.find("\"", posStart);
-
-								coverId = coverTag.substr(posStart, posEnd - posStart);
-
-								// Find item tag in original opf file contents
-
-								posStart = xmlContent.find("id=\"" + coverId + "\"");
-
-								if (posStart == std::string::npos) {
-									goto test_coverfile;
-								}
-
-								posStart = xmlContent.find_last_of("<", posStart);
-								posEnd = xmlContent.find(">", posStart);
-
-								itemTag = xmlContent.substr(posStart, posEnd - posStart + 1);
-
-								// Find cover path in item tag
-
-								posStart = itemTag.find("href=\"");
-
-								if (posStart == std::string::npos) {
-									goto test_coverfile;
-								}
-
-								posStart += 6;
-								posEnd = itemTag.find("\"", posStart);
-
-								if (posEnd == std::string::npos) {
-									goto test_coverfile;
-								}
-
-								coverfile = rootpath + itemTag.substr(posStart, posEnd - posStart);
-								ReplaceStringInPlace(coverfile, "%20", " ");
-								goto test_coverfile;
-							}
+							coverfile = rootpath + itemTag.substr(posStart, posEnd - posStart);
+							ReplaceStringInPlace(coverfile, "%20", " ");
 						}
 					}
 				}
-			
-		}
 
+				// if there is no matching item id, check to see if 
+				// coverId may specify the actual image as found in some books
+				// I.e. '<meta name="cover" content="Images/cover.jpg" />'
+				// This is a "fall-through" from above because some books use an image path as the id,
+				// e.g. '<meta content="cover.jpg" name="cover"/>'
+				if (coverfile.empty() && IsImage(A2T(coverId.c_str())))
+				{
+					coverfile = rootpath + coverId;
+					ReplaceStringInPlace(coverfile, "%20", " ");
+					goto test_coverfile;
+				}
+
+			}
+		}
+			
 test_coverfile:
 		if (coverfile.empty()) {
 
@@ -499,7 +562,7 @@ test_coverfile:
 			int thumbindex;
 			ZIPENTRY ze;
 			ZRESULT res = FindZipItem(_z.getHZIP(), A2T(coverfile.c_str()), true, &thumbindex, &ze);
-			
+
 			if (thumbindex < 0) return E_FAIL;
 			//go to thumb index
 			if (!_z.GetItem(thumbindex)) return E_FAIL;
@@ -526,8 +589,8 @@ test_coverfile:
 						}
 					}
 				}
+				GlobalFree(hG);
 			}
-			//GlobalFree(hG);//autofreed
 			return ((*phBmpThumbnail) ? S_OK : E_FAIL);
 		}
 		return E_FAIL;
@@ -813,12 +876,11 @@ try
 				if (_fs == 0) tip = _T("EPUB File\nSize: 0 bytes");
 				else
 				{
-					std::string title = GetEpubTitle(m_cbxFile);
-					ATL::CAtlStringW titleW = CA2W(title.c_str());
+					CString title = GetEpubTitle(m_cbxFile);
 
-					if (title.length() > 0)
+					if (title.GetLength() > 0)
 						tip.Format(_T("EPUB File\n%s\nSize: %s"),
-							titleW, StrFormatByteSize64(_fs, _tf, 16));
+							title, StrFormatByteSize64(_fs, _tf, 16));
 					else tip.Format(_T("EPUB File\nSize: %s"), StrFormatByteSize64(_fs, _tf, 16));
 				}
 		break;
