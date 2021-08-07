@@ -678,25 +678,22 @@ catch (...){ ATLTRACE("exception in IExtractImage::Extract\n"); return S_FALSE;}
 	return S_OK;
 	}
 
-	std::string GetEpubTitle(LPCTSTR ePubFile)
+	CString GetEpubTitle(LPCTSTR ePubFile)
 	{
+		CString title;
 		CUnzip _z;
-		if (!_z.Open(m_cbxFile)) return std::string();
+		if (!_z.Open(m_cbxFile)) return title;
 		int j = _z.GetItemCount();
-		if (j == 0) return std::string();
+		if (j == 0) return title;
 
 		HZIP zipHandle = _z.getHZIP();
 
 		std::string rootfile = GetEpubRootFile(&_z);
-		if (rootfile.empty())
-		{
-			return std::string();
-		}
+		if (rootfile.empty()) return title;
 
 		USES_CONVERSION;
 
 		HGLOBAL hGContainer = NULL;
-		std::string title;
 
 		int dex = -1;
 		ZIPENTRY ze;
@@ -706,37 +703,45 @@ catch (...){ ATLTRACE("exception in IExtractImage::Extract\n"); return S_FALSE;}
 		{
 			_z.GetItem(dex);
 			int i = dex;
-			
-			hGContainer = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (SIZE_T)_z.GetItemUnpackedSize());
+			size_t itemSize = _z.GetItemUnpackedSize();
+			hGContainer = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, itemSize);
 			if (hGContainer)
 			{
 				bool b = false;
 				LPVOID pBuf = ::GlobalLock(hGContainer);
 				if (pBuf)
-					b = _z.UnzipItemToMembuffer(i, pBuf, _z.GetItemUnpackedSize());
+					b = _z.UnzipItemToMembuffer(i, pBuf, itemSize);
 
 				if (::GlobalUnlock(hGContainer) == 0 && GetLastError() == NO_ERROR)
 				{
 					if (b)
 					{
-						// Find <dc:title> tag
+						// UTF-8 input to wchar
 
-						std::string xmlContent;
+						CAtlString cstr;
+						LPWSTR ptr = cstr.GetBuffer(itemSize + 1);
 
-						xmlContent = (char*)pBuf;
-
-						// KBR may be of the form '<dc:title id="title">'
-						size_t posStart = xmlContent.find("<dc:title");
-
-						if (posStart == std::string::npos) {
+						int newLen = MultiByteToWideChar(
+							CP_UTF8, 0,
+							(LPCCH)pBuf, itemSize, ptr, itemSize + 1
+						);
+						if (!newLen)
+						{
+							cstr.ReleaseBuffer(0);
 							goto on_exit;
 						}
-						posStart = xmlContent.find(">", posStart);
-						posStart += 1;
+						cstr.ReleaseBuffer();
 
-						size_t posEnd = xmlContent.find("</dc:title>", posStart);
+						// Find <dc:title> tag
 
-						title = xmlContent.substr(posStart, posEnd - posStart);
+						int tstart = cstr.Find(_T("<dc:title"));
+						if (tstart == -1) // nope
+							goto on_exit;
+
+						int tstart2 = cstr.Find(_T('>'), tstart); // KBR may be of the form '<dc:title id="title">'
+						int tend = cstr.Find(_T("</dc:title>"), tstart2);
+
+						title = cstr.Mid(tstart2+1, tend-tstart2-1);
 					}
 				}
 			}
