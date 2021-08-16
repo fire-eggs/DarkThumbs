@@ -7,8 +7,9 @@
 #endif
 
 //runs on min win2k
-#define _WIN32_WINNT	_WIN32_WINNT_WIN2K
+#define _WIN32_WINNT	0x0501 //_WIN32_WINNT_WIN2K
 
+#define WINVER 0x0501 // Vista or better
 
 //#define _WTL_SUPPORT_SDK_ATL3
 #pragma comment(linker, "/NODEFAULTLIB:atlthunk.lib")
