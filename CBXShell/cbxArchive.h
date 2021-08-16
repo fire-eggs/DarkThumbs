@@ -347,25 +347,29 @@ public:
 			b = _z->UnzipItemToMembuffer(dex, pBuf, itemSize);
 
 		if (::GlobalUnlock(hGContainer) != 0 || GetLastError() != NO_ERROR || !b)
-			return rootfile;
+			goto exitGRF;
 
-		std::string xmlContent = (char*)pBuf;
+		{
+			std::string xmlContent = (char*)pBuf;
 
-		size_t posStart = xmlContent.find("rootfile ");
+			size_t posStart = xmlContent.find("rootfile ");
 
-		if (posStart == std::string::npos)
-			return rootfile;
+			if (posStart == std::string::npos)
+				goto exitGRF;
 
-		posStart = xmlContent.find("full-path=\"", posStart);
+			posStart = xmlContent.find("full-path=\"", posStart);
 
-		if (posStart == std::string::npos)
-			return rootfile;
+			if (posStart == std::string::npos)
+				goto exitGRF;
 
-		posStart += 11;
-		size_t posEnd = xmlContent.find("\"", posStart);
+			posStart += 11;
+			size_t posEnd = xmlContent.find("\"", posStart);
 
-		rootfile = xmlContent.substr(posStart, posEnd - posStart);
+			rootfile = xmlContent.substr(posStart, posEnd - posStart);
+		}
 		
+	exitGRF:
+		GlobalFree(hGContainer);
 		return rootfile;
 	}
 
@@ -442,6 +446,8 @@ public:
 
 	HRESULT ExtractEpub(HBITMAP* phBmpThumbnail)
 	{
+		HGLOBAL hGContainer = NULL;
+
 		std::string xmlContent, rootpath, coverfile;
 
 		CUnzip _z;
@@ -473,7 +479,7 @@ public:
 		_z.GetItem(dex);
 		int i = dex;
 
-		HGLOBAL hGContainer = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (SIZE_T)_z.GetItemUnpackedSize());
+		hGContainer = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (SIZE_T)_z.GetItemUnpackedSize());
 		if (hGContainer)
 		{
 			bool b = false;
@@ -546,6 +552,8 @@ public:
 		}
 			
 test_coverfile:
+		if (hGContainer) GlobalFree(hGContainer);
+
 		if (coverfile.empty()) {
 
 			// No cover file specified, do a brute-force search for the first file with "cover" in the name.
@@ -600,7 +608,7 @@ test_coverfile:
 						}
 					}
 				}
-				GlobalFree(hG);
+				// GlobalFree(hG); KBR: unnecessary, freed as indicated by 2d param of CreateStreamOnHGlobal above
 			}
 			return ((*phBmpThumbnail) ? S_OK : E_FAIL);
 		}
