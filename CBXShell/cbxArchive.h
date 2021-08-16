@@ -300,13 +300,25 @@ public:
 	return NOERROR;
 	}
 
-	void ReplaceStringInPlace(std::string& subject, const std::string& search,
-		const std::string& replace) {
-		size_t pos = 0;
-		while ((pos = subject.find(search, pos)) != std::string::npos) {
-			subject.replace(pos, search.length(), replace);
-			pos += replace.length();
+	std::string urlDecode(std::string& SRC)
+	{
+		std::string ret;
+		for (int i = 0; i < SRC.length(); i++)
+		{
+			if (int(SRC[i]) == 37) // 37 is '%'
+			{
+				int ii;
+				sscanf(SRC.substr(i + 1, 2).c_str(), "%x", &ii);
+				char ch = static_cast<char>(ii);
+				ret += ch;
+				i = i + 2;
+			}
+			else
+			{
+				ret += SRC[i];
+			}
 		}
+		return (ret);
 	}
 
 	// EPUP3 standard: open the container.xml file to fetch the path of the rootfile
@@ -513,8 +525,8 @@ public:
 
 						if (posEnd != std::string::npos)
 						{
-							coverfile = rootpath + itemTag.substr(posStart, posEnd - posStart);
-							ReplaceStringInPlace(coverfile, "%20", " ");
+							std::string coverfile0 = rootpath + itemTag.substr(posStart, posEnd - posStart);
+							coverfile = urlDecode(coverfile0);
 						}
 					}
 				}
@@ -526,9 +538,8 @@ public:
 				// e.g. '<meta content="cover.jpg" name="cover"/>'
 				if (coverfile.empty() && IsImage(A2T(coverId.c_str())))
 				{
-					coverfile = rootpath + coverId;
-					ReplaceStringInPlace(coverfile, "%20", " ");
-					goto test_coverfile;
+					std::string coverfile0 = rootpath + coverId;
+					coverfile = urlDecode(coverfile0);
 				}
 
 			}
