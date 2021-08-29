@@ -12,6 +12,7 @@
 #define IDC_CB_CBZ                              1004
 #define IDC_CB_EPUB                             1006
 #define IDC_TH_GROUP                            1005
+#define IDC_CB_MOBI                             1007
 #define IDC_CB_SHOWICON                         1010
 #define IDC_CB_SHOWICON_DESC                    1011
 #define IDC_CB_RAR                              57681

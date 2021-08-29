@@ -23,6 +23,7 @@
 #define CBX_RARTH_KEY _T("SOFTWARE\\Classes\\.RAR\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
 #define CBX_CBRTH_KEY _T("SOFTWARE\\Classes\\.CBR\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
 #define CBX_EPUBTH_KEY _T("SOFTWARE\\Classes\\.EPUB\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
+#define CBX_MOBITH_KEY _T("SOFTWARE\\Classes\\.MOBI\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
 // infotip handler keys
 #define CBX_ZIPIH_KEY _T("SOFTWARE\\Classes\\.ZIP\\shellex\\{00021500-0000-0000-C000-000000000046}")
 #define CBX_CBZIH_KEY _T("SOFTWARE\\Classes\\.CBZ\\shellex\\{00021500-0000-0000-C000-000000000046}")
@@ -37,6 +38,7 @@
 #define CBX_RAR 3
 #define CBX_CBR 4
 #define CBX_EPUB 5
+#define CBX_MOBI 6
 //#define CBX_SORT 5
 
 
@@ -166,6 +168,7 @@ public:
 		case CBX_EPUB: return CBX_EPUBTH_KEY;
 		case CBX_RAR: return CBX_RARTH_KEY;
 		case CBX_CBR: return CBX_CBRTH_KEY;
+		case CBX_MOBI: return CBX_MOBITH_KEY;
 		default:break;
 		}
 	return NULL;

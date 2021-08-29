@@ -33,6 +33,7 @@
 #endif
 #include "unzip.h"
 #include <string>
+#include "mobi.h"
 
 #define CBXMEM_MAXBUFFER_SIZE 33554432 //32mb
 #define CBXTYPE int
@@ -42,9 +43,9 @@
 #define CBXTYPE_RAR  3
 #define CBXTYPE_CBR  4
 #define CBXTYPE_EPUB 5
+#define CBXTYPE_MOBI 6
 
 #define CBX_APP_KEY _T("Software\\T800 Productions\\{9E6ECB90-5A61-42BD-B851-D3297D9C7F39}")
-
 
 namespace __cbx {
 
@@ -98,7 +99,6 @@ private:
 		HZIP hz;
 		ZRESULT zr;
 };
-
 
 // unrar wrapper
 typedef const RARHeaderDataEx* LPCRARHeaderDataEx;
@@ -254,6 +254,165 @@ public:
 	{
 		if (m_pIs) {m_pIs->Release(); m_pIs=NULL;}
 	}
+
+	//
+	// Extrapolated from mobitool.c in the libmobi repo. See https://github.com/bfabiszewski/libmobi
+	//
+	int fetchMobiCover(const MOBIData* m, HBITMAP* phBmpThumbnail, SIZE thumbSize) 
+	{
+		MOBIPdbRecord* record = NULL;
+		MOBIExthHeader* exth = mobi_get_exthrecord_by_tag(m, EXTH_COVEROFFSET);
+		if (exth) 
+		{
+			uint32_t offset = mobi_decode_exthvalue((const unsigned char*)(exth->data), exth->size);
+			size_t first_resource = mobi_get_first_resource_record(m);
+			size_t uid = first_resource + offset;
+			record = mobi_get_record_by_seqnumber(m, uid);
+		}
+		if (record == NULL || record->size < 4) 
+		{
+			return E_FAIL;
+		}
+
+		HGLOBAL hG = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (SIZE_T)record->size);
+		if (hG)
+		{
+			LPVOID pBuf = ::GlobalLock(hG);
+			if (pBuf)
+				CopyMemory(pBuf, record->data, record->size);
+
+			if (::GlobalUnlock(hG) == 0 && GetLastError() == NO_ERROR)
+			{
+				IStream* pIs = NULL;
+				if (S_OK == CreateStreamOnHGlobal(hG, TRUE, (LPSTREAM*)&pIs))//autofree hG
+				{
+					*phBmpThumbnail = ThumbnailFromIStream(pIs, &thumbSize, false);
+					pIs->Release();
+					pIs = NULL;
+				}
+			}
+			GlobalFree(hG);
+		}
+		return ((*phBmpThumbnail) ? S_OK : E_FAIL);
+	}
+
+	//
+	// Extrapolated from mobitool.c in the libmobi repo. See https://github.com/bfabiszewski/libmobi
+	//
+	HRESULT ExtractMobiCover(CString filepath, HBITMAP* phBmpThumbnail)
+	{
+		MOBI_RET mobi_ret;
+		int ret = S_OK;
+		/* Initialize main MOBIData structure */
+		MOBIData* m = mobi_init();
+		if (m == NULL) {
+			return E_FAIL;
+		}
+		/* By default loader will parse KF8 part of hybrid KF7/KF8 file */
+	//    if (parse_kf7_opt) 
+		{
+			/* Force it to parse KF7 part */
+			mobi_parse_kf7(m);
+		}
+		errno = 0;
+		FILE* file;
+		errno_t errnot = _wfopen_s(&file, filepath, L"rb");
+		if (file == NULL) {
+			int errsv = errnot;
+			mobi_free(m);
+			return E_FAIL;
+		}
+		/* MOBIData structure will be filled with loaded document data and metadata */
+		mobi_ret = mobi_load_file(m, file);
+		fclose(file);
+
+		if (mobi_ret != MOBI_SUCCESS) {
+			mobi_free(m);
+			return E_FAIL;
+		}
+
+		ret = fetchMobiCover(m, phBmpThumbnail, m_thumbSize);
+		/* Free MOBIData structure */
+		mobi_free(m);
+		return ret;
+	}
+
+	static inline BOOL Draw(
+		CImage ci,
+		_In_ HDC hDestDC,
+		_In_ int xDest,
+		_In_ int yDest,
+		_In_ int nDestWidth,
+		_In_ int nDestHeight,
+		_In_ int xSrc,
+		_In_ int ySrc,
+		_In_ int nSrcWidth,
+		_In_ int nSrcHeight,
+		_In_ Gdiplus::InterpolationMode interpolationMode) throw()
+	{
+		Gdiplus::Bitmap bm((HBITMAP)ci, NULL);
+		if (bm.GetLastStatus() != Gdiplus::Ok)
+		{
+			return FALSE;
+		}
+
+		Gdiplus::Graphics dcDst(hDestDC);
+		dcDst.SetInterpolationMode(interpolationMode);
+
+		Gdiplus::Rect destRec(xDest, yDest, nDestWidth, nDestHeight);
+
+		Gdiplus::Status status = dcDst.DrawImage(&bm, destRec, xSrc, ySrc, nSrcWidth, nSrcHeight, Gdiplus::Unit::UnitPixel);
+
+		return status == Gdiplus::Ok;
+	}
+
+
+	HBITMAP ThumbnailFromIStream(IStream* pIs, const LPSIZE pThumbSize, bool showIcon)
+	{
+		ATLASSERT(pIs);
+		CImage ci;//uses gdi+ internally
+		if (S_OK != ci.Load(pIs)) return NULL;
+
+		//check size
+		int tw = ci.GetWidth();
+		int th = ci.GetHeight();
+		float cx = (float)pThumbSize->cx;
+		float cy = (float)pThumbSize->cy;
+		float rx = cx / (float)tw;
+		float ry = cy / (float)th;
+
+		//if bigger size
+		if ((rx < 1) || (ry < 1))
+		{
+			CDC hdcNew = ::CreateCompatibleDC(NULL);
+			if (hdcNew.IsNull()) return NULL;
+
+			hdcNew.SetStretchBltMode(HALFTONE);
+			hdcNew.SetBrushOrg(0, 0, NULL);
+			//variables retain values until assignment
+			tw = (int)(min(rx, ry) * tw);//C424 warning workaround
+			th = (int)(min(rx, ry) * th);
+
+			CBitmap hbmpNew;
+			hbmpNew.CreateCompatibleBitmap(ci.GetDC(), tw, th);
+			ci.ReleaseDC();//don't forget!
+			if (hbmpNew.IsNull()) return NULL;
+
+			HBITMAP hbmpOld = hdcNew.SelectBitmap(hbmpNew);
+			hdcNew.FillSolidRect(0, 0, tw, th, RGB(255, 255, 255));//white background
+
+			Draw(ci, hdcNew, 0, 0, tw, th, 0, 0, ci.GetWidth(), ci.GetHeight(), Gdiplus::InterpolationMode::InterpolationModeHighQualityBicubic);//too late for error checks
+			if (showIcon)
+				DrawIcon(hdcNew, 0, 0, zipIcon);
+
+			hdcNew.SelectBitmap(hbmpOld);
+
+			return hbmpNew.Detach();
+		}
+
+		return ci.Detach();
+	}
+
 
 public:
 	////////////////////////////////////////
@@ -583,7 +742,7 @@ test_coverfile:
 						IStream* pIs = NULL;
 						if (S_OK == CreateStreamOnHGlobal(hG, TRUE, (LPSTREAM*)&pIs))//autofree hG
 						{
-							*phBmpThumbnail = ThumbnailFromIStream(pIs, &m_thumbSize);
+							*phBmpThumbnail = ThumbnailFromIStream(pIs, &m_thumbSize, m_showIcon);
 							pIs->Release();
 							pIs = NULL;
 						}
@@ -605,6 +764,9 @@ test_coverfile:
 try {
 		switch (m_cbxType)
 		{
+		case CBXTYPE_MOBI:
+			return ExtractMobiCover(m_cbxFile, phBmpThumbnail);
+
 		case CBXTYPE_EPUB:
 		{
 			if (ExtractEpub(phBmpThumbnail) != E_FAIL)
@@ -665,7 +827,7 @@ try {
 							IStream* pIs=NULL;
 							if (S_OK==CreateStreamOnHGlobal(hG, TRUE, (LPSTREAM*)&pIs))//autofree hG
 							{
-								*phBmpThumbnail= ThumbnailFromIStream(pIs, &m_thumbSize);
+								*phBmpThumbnail= ThumbnailFromIStream(pIs, &m_thumbSize, m_showIcon);
 								pIs->Release();
 								pIs=NULL;
 							}
@@ -726,7 +888,7 @@ try {
 					if (S_OK==CreateStreamOnHGlobal(hG, TRUE, (LPSTREAM*)&pIs))
 					{
 						_r.SetIStream(pIs);
-						if (_r.ProcessItem()) *phBmpThumbnail= ThumbnailFromIStream(pIs, &m_thumbSize);
+						if (_r.ProcessItem()) *phBmpThumbnail= ThumbnailFromIStream(pIs, &m_thumbSize, m_showIcon);
 					}
 				}
 				GlobalFree(hG);
@@ -773,7 +935,7 @@ catch (...){ ATLTRACE("exception in IExtractImage::Extract\n"); return S_FALSE;}
 				bool b = false;
 				LPVOID pBuf = ::GlobalLock(hGContainer);
 				if (pBuf)
-					b = _z.UnzipItemToMembuffer(i, pBuf, itemSize);
+					b = _z.UnzipItemToMembuffer(i, pBuf, (unsigned int)itemSize);
 
 				if (::GlobalUnlock(hGContainer) == 0 && GetLastError() == NO_ERROR)
 				{
@@ -782,11 +944,11 @@ catch (...){ ATLTRACE("exception in IExtractImage::Extract\n"); return S_FALSE;}
 						// UTF-8 input to wchar
 
 						CAtlString cstr;
-						LPWSTR ptr = cstr.GetBuffer(itemSize + 1);
+						LPWSTR ptr = cstr.GetBuffer((int)(itemSize + 1));
 
 						int newLen = MultiByteToWideChar(
 							CP_UTF8, 0,
-							(LPCCH)pBuf, itemSize, ptr, itemSize + 1
+							(LPCCH)pBuf, (int)itemSize, ptr, ((int)itemSize + 1)
 						);
 						if (!newLen)
 						{
@@ -947,6 +1109,7 @@ private:
 		if (StrEqual(szExt, _T(".rar"))) return CBXTYPE_RAR;
 		if (StrEqual(szExt, _T(".epub"))) return CBXTYPE_EPUB;
 		if (StrEqual(szExt, _T(".phz"))) return CBXTYPE_CBZ;
+		if (StrEqual(szExt, _T(".mobi"))) return CBXTYPE_MOBI;
 	return CBXTYPE_NONE;
 	}
 
@@ -994,81 +1157,6 @@ private:
 			if (!cr.SkipItem()) return FALSE;
 		}
 	return TRUE;
-	}
-
-	static inline BOOL Draw(
-		CImage ci,
-		_In_ HDC hDestDC,
-		_In_ int xDest,
-		_In_ int yDest,
-		_In_ int nDestWidth,
-		_In_ int nDestHeight,
-		_In_ int xSrc,
-		_In_ int ySrc,
-		_In_ int nSrcWidth,
-		_In_ int nSrcHeight,
-		_In_ Gdiplus::InterpolationMode interpolationMode) throw()
-	{
-		Gdiplus::Bitmap bm((HBITMAP)ci, NULL);
-		if (bm.GetLastStatus() != Gdiplus::Ok)
-		{
-			return FALSE;
-		}
-
-		Gdiplus::Graphics dcDst(hDestDC);
-		dcDst.SetInterpolationMode(interpolationMode);
-
-		Gdiplus::Rect destRec(xDest, yDest, nDestWidth, nDestHeight);
-
-		Gdiplus::Status status = dcDst.DrawImage(&bm, destRec, xSrc, ySrc, nSrcWidth, nSrcHeight, Gdiplus::Unit::UnitPixel);
-
-		return status == Gdiplus::Ok;
-	}
-
-	HBITMAP ThumbnailFromIStream(IStream* pIs, const LPSIZE pThumbSize)
-	{
-		ATLASSERT(pIs);
-		CImage ci;//uses gdi+ internally
-		if (S_OK!=ci.Load(pIs)) return NULL;
-
-		//check size
-		int tw=ci.GetWidth();
-		int th=ci.GetHeight();
-		float cx = (float)pThumbSize->cx;
-		float cy = (float)pThumbSize->cy;
-		float rx = cx/(float)tw;
-		float ry = cy/(float)th;
-
-		//if bigger size
-		if ((rx<1) || (ry<1))
-		{
-			CDC hdcNew=::CreateCompatibleDC(NULL);
-			if (hdcNew.IsNull()) return NULL;
-
-			hdcNew.SetStretchBltMode(HALFTONE);
-			hdcNew.SetBrushOrg(0,0, NULL);
-			//variables retain values until assignment
-			tw=(int)(min(rx,ry)*tw);//C424 warning workaround
-			th=(int)(min(rx,ry)*th);
-
-			CBitmap hbmpNew;
-			hbmpNew.CreateCompatibleBitmap(ci.GetDC(), tw,th);
-			ci.ReleaseDC();//don't forget!
-			if (hbmpNew.IsNull()) return NULL;
-
-			HBITMAP hbmpOld=hdcNew.SelectBitmap(hbmpNew);
-			hdcNew.FillSolidRect(0,0, tw,th, RGB(255,255,255));//white background
-
-			Draw(ci, hdcNew, 0, 0, tw, th, 0, 0, ci.GetWidth(), ci.GetHeight(), Gdiplus::InterpolationMode::InterpolationModeHighQualityBicubic);//too late for error checks
-			if(m_showIcon) 
-				DrawIcon(hdcNew, 0, 0, zipIcon);
-
-			hdcNew.SelectBitmap(hbmpOld);
-
-		return hbmpNew.Detach();
-		}
-
-	return ci.Detach();
 	}
 
 	__int64 FindThumbnailSortRAR(LPCTSTR pszFile)
@@ -1132,6 +1220,8 @@ public:
 #endif
 
 };//class _CCBXArchive
+
+
 
 }//namespace __cbx
 
