@@ -16,13 +16,15 @@ Uses the Windows Template Library (wtl) via Nuget.
 Windows 7/8/8.1/10 (32/64-bit)
 
 ## Screenshot
-(Update for 1.3 TBD)
-![MoReDaRkThUmBs](https://i.imgur.com/O8oBUwt.jpg)
+
+![V1.3](https://github.com/L0garithmic/DarkThumbs/blob/master/Screenshot%20from%202021-08-29%2014-11-11.png)
+
 
 ## Credits
 
 ### Source Code
 Used [Invertex's CBXShell](https://github.com/Invertex/CBXShell) as a base
+
 MOBI support thanks to [libmobi](https://github.com/bfabiszewski/libmobi)
 
 ### Application Icon
