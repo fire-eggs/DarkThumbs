@@ -206,6 +206,27 @@ int m_howFound;
 		return ci.Detach();
 	}
 
+	std::string urlDecode(std::string& SRC) 
+	{
+		std::string ret;
+		for (int i = 0; i < SRC.length(); i++) 
+		{
+			if (int(SRC[i]) == 37) // 37 is '%'
+			{
+				int ii;
+				sscanf(SRC.substr(i + 1, 2).c_str(), "%x", &ii);
+				char ch = static_cast<char>(ii);
+				ret += ch;
+				i = i + 2;
+			}
+			else 
+			{
+				ret += SRC[i];
+			}
+		}
+		return (ret);
+	}
+
 	std::string GetEpubRootFile(CUnzip *_z)
 	{
 		std::string rootfile;
@@ -229,25 +250,29 @@ int m_howFound;
 			b = _z->UnzipItemToMembuffer(dex, pBuf, itemSize);
 
 		if (::GlobalUnlock(hGContainer) != 0 || GetLastError() != NO_ERROR || !b)
-			return rootfile;
+			goto exitGRF;
 
-		std::string xmlContent = (char*)pBuf;
+		{
+			std::string xmlContent = (char*)pBuf;
 
-		size_t posStart = xmlContent.find("rootfile ");
+			size_t posStart = xmlContent.find("rootfile ");
 
-		if (posStart == std::string::npos)
-			return rootfile;
+			if (posStart == std::string::npos)
+				goto exitGRF;
 
-		posStart = xmlContent.find("full-path=\"", posStart);
+			posStart = xmlContent.find("full-path=\"", posStart);
 
-		if (posStart == std::string::npos)
-			return rootfile;
+			if (posStart == std::string::npos)
+				goto exitGRF;
 
-		posStart += 11;
-		size_t posEnd = xmlContent.find("\"", posStart);
+			posStart += 11;
+			size_t posEnd = xmlContent.find("\"", posStart);
 
-		rootfile = xmlContent.substr(posStart, posEnd - posStart);
+			rootfile = xmlContent.substr(posStart, posEnd - posStart);
+		}
 
+	exitGRF:
+		GlobalFree(hGContainer);
 		return rootfile;
 	}
 
@@ -324,6 +349,8 @@ int m_howFound;
 
 	HRESULT OnExtract(HBITMAP* phBmpThumbnail)
 	{
+		HGLOBAL hGContainer = NULL;
+
 		std::string xmlContent, rootpath, coverfile;
 		m_howFound = 0;
 
@@ -356,7 +383,7 @@ int m_howFound;
 		_z.GetItem(dex);
 		int i = dex;
 
-		HGLOBAL hGContainer = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (SIZE_T)_z.GetItemUnpackedSize());
+		hGContainer = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (SIZE_T)_z.GetItemUnpackedSize());
 		if (hGContainer)
 		{
 			bool b = false;
@@ -409,8 +436,9 @@ int m_howFound;
 
 						if (posEnd != std::string::npos)
 						{
-							coverfile = rootpath + itemTag.substr(posStart, posEnd - posStart);
-							ReplaceStringInPlace(coverfile, "%20", " ");
+							std::string coverfile0 = rootpath + itemTag.substr(posStart, posEnd - posStart);
+							coverfile = urlDecode(coverfile0);
+							//ReplaceStringInPlace(coverfile, "%20", " ");
 							m_howFound = 2;
 						}
 					}
@@ -433,6 +461,8 @@ int m_howFound;
 		}
 			
 test_coverfile:
+		if (hGContainer) GlobalFree(hGContainer);
+
 		if (coverfile.empty()) {
 
 			m_howFound = 0;
@@ -490,7 +520,7 @@ test_coverfile:
 						}
 					}
 				}
-				GlobalFree(hG);
+				// GlobalFree(hG); KBR: unnecessary, freed as indicated by 2d param of CreateStreamOnHGlobal above
 			}
 			return ((*phBmpThumbnail) ? S_OK : E_FAIL);
 		}
