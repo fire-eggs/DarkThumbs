@@ -6,7 +6,7 @@ The V1.3 release:
 See the releases page for additional changes in earlier releases.
 
 # DarkThumbs
-Thumbnail preview for EPUB, MOBI, CBZ, CBR, RAR and ZIP image archives
+Thumbnail preview in Windows Explorer for EPUB, MOBI, CBZ, CBR, RAR and ZIP image archives
 
 ## Built with
 Visual Studio 2019 using Windows 10 SDK
@@ -27,3 +27,7 @@ MOBI support thanks to [libmobi](https://github.com/bfabiszewski/libmobi)
 
 ### Application Icon
 Icons made by [Those Icons](https://www.flaticon.com/authors/those-icons) from [Flaticon](https://www.flaticon.com/)
+
+- Sponsored by [l0garthimic](https://github.com/L0garithmic)
+- V1.0 by [dark-knight404](https://github.com/dark-knight404)
+- V1.1-V1.3 by [fire-eggs](https://github.com/fire-eggs)
