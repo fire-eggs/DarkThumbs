@@ -10,6 +10,7 @@ Thumbnail preview in Windows Explorer for EPUB, MOBI, CBZ, CBR, RAR and ZIP imag
 
 ## Built with
 Visual Studio 2019 using Windows 10 SDK
+
 Uses the Windows Template Library (wtl) via Nuget.
 
 ## Minimium system requirements
