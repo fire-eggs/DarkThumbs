@@ -155,7 +155,7 @@
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>packages\wtl.9.1.1\lib\native\include;mobi</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>packages\wtl.9.1.1\lib\native\include;E:\proj\CBXShell\DarkThumbs\mobi</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;_WIN64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -233,14 +233,14 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <PreprocessorDefinitions>UNICODE;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;UNICODE;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalIncludeDirectories>packages\wtl.9.1.1\lib\native\include;E:\proj\DarkThumbs\mobi</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>packages\wtl.9.1.1\lib\native\include;$(SolutionDir)mobi</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;_WIN64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -254,17 +254,18 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <TargetMachine>MachineX64</TargetMachine>
-      <AdditionalLibraryDirectories>E:\proj\DarkThumbs\mobi</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\mobi</AdditionalLibraryDirectories>
       <AdditionalDependencies>libmobi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
+      <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <OutputFile>.\Release/CBXShell.bsc</OutputFile>
     </Bscmake>
     <PostBuildEvent>
-      <Command>echo Copying UnRAR64.dll to output directory  &amp;&amp; copy $(ProjectDir)UnRAR64.dll $(OutDir)</Command>
+      <Command>echo Copying UnRAR64.dll to output directory  &amp;&amp; copy "$(ProjectDir)UnRAR64.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
