@@ -45,8 +45,8 @@ STRINGTABLE
 // Version Information resources
 //
 VS_VERSION_INFO VERSIONINFO
-    FILEVERSION     4,6,2,0
-    PRODUCTVERSION  4,6,2,0
+    FILEVERSION     4,10,0,0
+    PRODUCTVERSION  4,10,0,0
     FILEOS          VOS__WINDOWS32
     FILETYPE        VFT_DLL
 {
@@ -54,17 +54,17 @@ VS_VERSION_INFO VERSIONINFO
     {
         BLOCK "040904b0"
         {
-            VALUE "CompanyName", "T800 Productions\0"
+            VALUE "CompanyName", "DarkThumbs\0"
             VALUE "Dependencies", "gdiplus.dll, unrar.dll\0"
 #ifdef _WIN64
-            VALUE "FileDescription", "Image Archive Shell Extension 64-bit\0"
+            VALUE "FileDescription", "Ebook / Image-Archive Shell Extension 64-bit\0"
 #else
-            VALUE "FileDescription", "Image Archive Shell Extension 32-bit\0"
+            VALUE "FileDescription", "Ebook / Image-Archive Shell Extension 32-bit\0"
 #endif
-            VALUE "FileVersion", "4.6.2.0\0"
-            VALUE "LegalCopyright", "T800 Productions © 2011\0"
+            VALUE "FileVersion", "4.10.0.0\0"
+            VALUE "LegalCopyright", "© 2021\0"
             VALUE "ProductName", "CBX Shell\0"
-            VALUE "ProductVersion", "4.6.2.0\0"
+            VALUE "ProductVersion", "4.10.0.0\0"
         }
     }
     BLOCK "VarFileInfo"

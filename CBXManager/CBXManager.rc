@@ -76,10 +76,10 @@ VS_VERSION_INFO VERSIONINFO
         {
             VALUE "CompanyName", "\0"
             VALUE "FileDescription", "DarkThumbs Manager\0"
-            VALUE "FileVersion", "4.9.0.0\0"
+            VALUE "FileVersion", "4.10.0.0\0"
             VALUE "LegalCopyright", "© 2021\0"
             VALUE "ProductName", "DarkThumbs\0"
-            VALUE "ProductVersion", "4.9.0.0\0"
+            VALUE "ProductVersion", "4.10.0.0\0"
         }
     }
     BLOCK "VarFileInfo"
