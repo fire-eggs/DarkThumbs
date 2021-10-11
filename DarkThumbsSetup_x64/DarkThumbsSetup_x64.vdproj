@@ -146,7 +146,7 @@
                 {
                     "{9EF0B969-E518-4E46-987F-47570745A589}:_2ED4FB936F6E4E72BC588BFD6F90E0D4"
                     {
-                    "Name" = "8:CBXShell"
+                    "Name" = "8:DarkThumbs"
                     "AlwaysCreate" = "11:FALSE"
                     "Condition" = "8:"
                     "Transitive" = "11:FALSE"
