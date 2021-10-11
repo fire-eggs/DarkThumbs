@@ -1129,7 +1129,9 @@ private:
 		if (StrEqual(szExt, _T(".epub"))) return CBXTYPE_EPUB;
 		if (StrEqual(szExt, _T(".phz"))) return CBXTYPE_CBZ;
 		if (StrEqual(szExt, _T(".mobi"))) return CBXTYPE_MOBI;
-	return CBXTYPE_NONE;
+		if (StrEqual(szExt, _T(".azw"))) return CBXTYPE_MOBI;
+		if (StrEqual(szExt, _T(".azw3"))) return CBXTYPE_MOBI;
+		return CBXTYPE_NONE;
 	}
 
 	BOOL GetImageCountZIP(LPCTSTR cbzFile, int &imagecount, int &filecount)

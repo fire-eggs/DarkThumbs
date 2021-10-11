@@ -118,6 +118,16 @@ void CMainDlg::OnApplyImpl()
 		bRefresh = TRUE;
 		m_reg.SetHandlers(CBX_MOBI, bRet);
 	}
+	if (bRet != m_reg.HasTH(CBX_AZW))
+	{
+		bRefresh = TRUE;
+		m_reg.SetHandlers(CBX_AZW, bRet);
+	}
+	if (bRet != m_reg.HasTH(CBX_AZW3))
+	{
+		bRefresh = TRUE;
+		m_reg.SetHandlers(CBX_AZW3, bRet);
+	}
 
 	if (bRefresh)
 	{
