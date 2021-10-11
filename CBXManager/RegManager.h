@@ -18,12 +18,14 @@
 
 // per-user settings (HKCU)
 // thumbnail handler keys
-#define CBX_ZIPTH_KEY _T("SOFTWARE\\Classes\\.ZIP\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
-#define CBX_CBZTH_KEY _T("SOFTWARE\\Classes\\.CBZ\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
-#define CBX_RARTH_KEY _T("SOFTWARE\\Classes\\.RAR\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
-#define CBX_CBRTH_KEY _T("SOFTWARE\\Classes\\.CBR\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
-#define CBX_EPUBTH_KEY _T("SOFTWARE\\Classes\\.EPUB\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
-#define CBX_MOBITH_KEY _T("SOFTWARE\\Classes\\.MOBI\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
+#define CBX_ZIPTH_KEY   _T("SOFTWARE\\Classes\\.ZIP\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
+#define CBX_CBZTH_KEY   _T("SOFTWARE\\Classes\\.CBZ\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
+#define CBX_RARTH_KEY   _T("SOFTWARE\\Classes\\.RAR\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
+#define CBX_CBRTH_KEY   _T("SOFTWARE\\Classes\\.CBR\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
+#define CBX_EPUBTH_KEY  _T("SOFTWARE\\Classes\\.EPUB\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
+#define CBX_MOBITH1_KEY _T("SOFTWARE\\Classes\\.MOBI\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
+#define CBX_MOBITH2_KEY _T("SOFTWARE\\Classes\\.AZW\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
+#define CBX_MOBITH3_KEY _T("SOFTWARE\\Classes\\.AZW3\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
 // infotip handler keys
 #define CBX_ZIPIH_KEY _T("SOFTWARE\\Classes\\.ZIP\\shellex\\{00021500-0000-0000-C000-000000000046}")
 #define CBX_CBZIH_KEY _T("SOFTWARE\\Classes\\.CBZ\\shellex\\{00021500-0000-0000-C000-000000000046}")
@@ -39,6 +41,8 @@
 #define CBX_CBR 4
 #define CBX_EPUB 5
 #define CBX_MOBI 6
+#define CBX_AZW 7
+#define CBX_AZW3 8
 //#define CBX_SORT 5
 
 
@@ -168,7 +172,9 @@ public:
 		case CBX_EPUB: return CBX_EPUBTH_KEY;
 		case CBX_RAR: return CBX_RARTH_KEY;
 		case CBX_CBR: return CBX_CBRTH_KEY;
-		case CBX_MOBI: return CBX_MOBITH_KEY;
+		case CBX_MOBI: return CBX_MOBITH1_KEY;
+		case CBX_AZW: return CBX_MOBITH2_KEY;
+		case CBX_AZW3: return CBX_MOBITH3_KEY;
 		default:break;
 		}
 	return NULL;
