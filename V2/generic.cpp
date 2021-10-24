@@ -1,5 +1,6 @@
 #include <string>
 #include <algorithm>
+#include <Shlwapi.h> // strcmplogicalW
 #include "bitarchiveinfo.hpp"
 #include "bitexception.hpp"
 #include "bitextractor.hpp"
@@ -9,6 +10,16 @@ using namespace bit7z;
 #include "common.h"
 #include "log.h"
 
+// Alphabetic sort using the original T800 logic
+bool sortfunc(const BitArchiveItem& a, const BitArchiveItem& b) { return StrCmpLogicalW(a.name().c_str(), b.name().c_str()) < 0; }
+
+// Fetch an image from any archive [i.e. NOT an epub, mobi, fb, etc].
+// path : path to archive file
+// sort : if true, takes the first image alphabetically. if false, takes the first image found.
+// size : size of the archive item
+// fmt  : the archive format to use, based on the extension
+// returns: the index of the image inside the archive, or -1 on error, unsupported, or not found.
+//
 int Generic(const std::wstring& path, BOOL sort, uint64_t* size, const BitInFormat* fmt)
 {
     int res = -1;
@@ -30,6 +41,8 @@ int Generic(const std::wstring& path, BOOL sort, uint64_t* size, const BitInForm
         auto arc_items = bai.items();
 
         // TODO sort option
+        if (sort)
+            std::sort(arc_items.begin(), arc_items.end(), sortfunc);
 
         bool firstFile = true;
         for (auto& item : arc_items)
