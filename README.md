@@ -12,6 +12,10 @@ Thumbnail preview in Windows Explorer for EPUB, Kindle (MOBI,AZW,AZW3), CBZ, CBR
 ![V1.3](https://github.com/L0garithmic/DarkThumbs/blob/master/Screenshot%20from%202021-08-29%2014-11-11.png)
 
 
+**With a Little Help From ...**
+
+![logo2](https://github.com/fire-eggs/yagp/blob/master/Files/deleaker_logo.png) - [Deleaker](https://www.deleaker.com) : the _best_ tool for finding memory, GDI and other leaks!
+
 ## Built with
 Visual Studio 2019 using Windows 10 SDK
 
