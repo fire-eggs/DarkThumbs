@@ -1,9 +1,3 @@
-// THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
-// PARTICULAR PURPOSE.
-//
-// Copyright (c) Microsoft Corporation. All rights reserved
 
 #include <shlwapi.h>
 #include <thumbcache.h> // For IThumbnailProvider.
@@ -24,7 +18,7 @@
 
 // TODO header
 int Generic(const std::wstring& path, BOOL sort, uint64_t* size, const BitInFormat* fmt);
-
+int Epub(const std::wstring& path, uint64_t* size);
 
 // this thumbnail provider implements IInitializeWithStream to enable being hosted
 // in an isolated process for robustness
@@ -108,12 +102,12 @@ IFACEMETHODIMP CRecipeThumbProvider::GetThumbnail(UINT cx, HBITMAP *phbmp, WTS_A
 {
     CMyLog log;
 
-    LOGINFO(L"GetThumbnail : %s", _filepath);
-    LOGINFO(L"Thumbsize: %d", cx);
+    LOGINFO(L"  GetThumbnail : %s", _filepath);
+    LOGINFO(L"  Thumbsize: %d", cx);
 
     setlocale(LC_ALL, ""); // for localized titles
 
-    m_bSort = FALSE;
+    m_bSort = TRUE; // TODO find from settings
     m_thumbSize.cx = m_thumbSize.cy = cx;
 
     std::wstring ext = getExt(_filepath);
@@ -121,23 +115,39 @@ IFACEMETHODIMP CRecipeThumbProvider::GetThumbnail(UINT cx, HBITMAP *phbmp, WTS_A
         return E_FAIL;
     std::transform(ext.begin(), ext.end(), ext.begin(), ::towlower);
 
+    uint64_t outsize; // The size of the image stream in bytes
+
     try
     {
         auto format = IsGeneric(ext);
-        uint64_t outsize;
         int index = Generic(_filepath, m_bSort, &outsize, format);
         if (index == -1)
         {
             LOGINFO(L"No image");
             return E_FAIL;
         }
-        HRESULT res = doBmp((wchar_t *)_filepath, index, format, outsize, phbmp); // TODO declaration
+        HRESULT res = doBmp((wchar_t*)_filepath, index, format, outsize, phbmp);
         *pdwAlpha = WTSAT_UNKNOWN;
         return res;
     }
-    catch (const std::exception& ex)
+    catch (...)//(const std::logic_error& ex)
     {
         // NOT generic, look for epub, mobi, fb
+
+        if (ext == L"epub")
+        {
+            int index = Epub(_filepath, &outsize);
+
+            // TODO if index === -1 call generic(zip)
+            if (index == -1)
+            {
+                LOGINFO(L"No image");
+                return E_FAIL;
+            }
+            HRESULT res = doBmp((wchar_t*)_filepath, index, &BitFormat::Zip, outsize, phbmp);
+            *pdwAlpha = WTSAT_UNKNOWN;
+            return res;
+        }
     }
 
     return S_OK;
