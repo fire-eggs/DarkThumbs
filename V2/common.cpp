@@ -225,11 +225,11 @@ std::wstring tail(std::wstring const& source, size_t const length)
 static const wchar_t* simple[] = { L"cbr", L"cbz", L"zip", L"7z", L"cb7", L"rar" };
 static const bit7z::BitInFormat* formats[] = { &BitFormat::Rar, &BitFormat::Zip, &BitFormat::Zip, &BitFormat::SevenZip, &BitFormat::SevenZip, &BitFormat::Rar };
 
-const bit7z::BitInFormat* IsGeneric(const std::wstring& ext)
+bit7z::BitInFormat* IsGeneric(const std::wstring& ext)
 {
     int count = sizeof(simple) / sizeof(wchar_t*);
     for (int i = 0; i < count; i++)
         if (ext == simple[i])
-            return formats[i];
+            return (BitInFormat *)formats[i];
     throw new std::logic_error("");
 }

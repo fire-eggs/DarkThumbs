@@ -116,19 +116,31 @@ IFACEMETHODIMP CRecipeThumbProvider::GetThumbnail(UINT cx, HBITMAP *phbmp, WTS_A
     std::transform(ext.begin(), ext.end(), ext.begin(), ::towlower);
 
     uint64_t outsize; // The size of the image stream in bytes
+    int index = -1;
+    BitInFormat *format;
 
-    try
+    if (ext == L"epub")
     {
-        auto format = IsGeneric(ext);
-        int index = Generic(_filepath, m_bSort, &outsize, format);
+        format = (BitInFormat*)&BitFormat::Zip;
+        index = Epub(_filepath, &outsize);
         if (index == -1)
+            index = Generic(_filepath, m_bSort, &outsize, format);
+    }
+    else
+    {
+        try
         {
-            LOGINFO(L"No image");
+            format = IsGeneric(ext);
+            index = Generic(_filepath, m_bSort, &outsize, format);
+        }
+        catch (...)
+        {
             return E_FAIL;
         }
-        HRESULT res = doBmp((wchar_t*)_filepath, index, format, outsize, phbmp);
-        *pdwAlpha = WTSAT_UNKNOWN;
-        return res;
+    }
+/*
+    try
+    {
     }
     catch (...)//(const std::logic_error& ex)
     {
@@ -149,6 +161,15 @@ IFACEMETHODIMP CRecipeThumbProvider::GetThumbnail(UINT cx, HBITMAP *phbmp, WTS_A
             return res;
         }
     }
+*/
+    if (index == -1)
+    {
+        LOGINFO(L"No image");
+        return E_FAIL;
+    }
+    HRESULT res = doBmp((wchar_t*)_filepath, index, format, outsize, phbmp);
+    *pdwAlpha = WTSAT_UNKNOWN;
+    return res;
 
     return S_OK;
 }

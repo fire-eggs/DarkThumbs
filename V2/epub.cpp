@@ -35,9 +35,12 @@ std::wstring get_wstring(const std::string& s)
     return std::wstring(buf.data(), wn);
 }
 
+// As per EPUB standard: open the container.xml file to fetch the path of the rootfile.
+// returns: the index of the rootfile, -1 if not found.
+//
 int findRootFile(const std::wstring& path, const vector<BitArchiveItem>& items, BitExtractor* bex)
 {
-    auto foo = L"META-INF\\container.xml";
+    auto foo = L"META-INF\\container.xml"; // NOTE: bit7z has rationalized all slashes to backslash
 
     int contdex = 0;
     bool found = false;
@@ -58,18 +61,18 @@ int findRootFile(const std::wstring& path, const vector<BitArchiveItem>& items, 
     size_t posStart = xmlContent.find("rootfile ");
 
     if (posStart == std::string::npos)
-        return -1;
+        return -1; // TODO logging
 
     posStart = xmlContent.find("full-path=\"", posStart);
 
     if (posStart == std::string::npos)
-        return -1;
+        return -1; // TODO logging
 
     posStart += 11;
     size_t posEnd = xmlContent.find("\"", posStart);
 
     std::string rootfile = xmlContent.substr(posStart, posEnd - posStart);
-    std::replace(rootfile.begin(), rootfile.end(), '/', '\\');
+    std::replace(rootfile.begin(), rootfile.end(), '/', '\\');  // NOTE: bit7z has rationalized all slashes to backslash
 
     int rootdex = 0;
     found = false;
@@ -86,6 +89,11 @@ int findRootFile(const std::wstring& path, const vector<BitArchiveItem>& items, 
     return rootdex;
 }
 
+// A brute-force search for the first image file with "cover" in its name.
+// items : the item list from the archive
+// size  : the returned size of the found image. undefined if not found.
+// returns: the index of the found image file, or -1 if none
+//
 int findCover(const vector<BitArchiveItem>& items, uint64_t *size)
 {
     int contdex = 0;

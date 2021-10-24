@@ -10,4 +10,4 @@ std::wstring getExt(const std::wstring& source);
 
 std::wstring tail(std::wstring const& source, size_t const length);
 
-const bit7z::BitInFormat* IsGeneric(const std::wstring& ext);
+bit7z::BitInFormat* IsGeneric(const std::wstring& ext);
