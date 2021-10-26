@@ -198,13 +198,25 @@ STDAPI DllRegisterServer()
         // List of registry entries we want to create
         const REGISTRY_ENTRY rgRegistryEntries[] =
         {
-            // RootKey            KeyName                                                                ValueName                     Data
-            {HKEY_CURRENT_USER,   L"Software\\Classes\\CLSID\\" SZ_CLSID_RECIPETHUMBHANDLER,                                 NULL,                           SZ_RECIPETHUMBHANDLER},
-            {HKEY_CURRENT_USER,   L"Software\\Classes\\CLSID\\" SZ_CLSID_RECIPETHUMBHANDLER,                                 L"DisableProcessIsolation",    L"1"},
-            {HKEY_CURRENT_USER,   L"Software\\Classes\\CLSID\\" SZ_CLSID_RECIPETHUMBHANDLER L"\\InProcServer32",             NULL,                           szModuleName},
-            {HKEY_CURRENT_USER,   L"Software\\Classes\\CLSID\\" SZ_CLSID_RECIPETHUMBHANDLER L"\\InProcServer32",             L"ThreadingModel",              L"Apartment"},
+            // RootKey            KeyName                                                                        ValueName                   Data
+            {HKEY_CURRENT_USER,   L"Software\\Classes\\CLSID\\" SZ_CLSID_RECIPETHUMBHANDLER,                                           NULL, SZ_RECIPETHUMBHANDLER},
+            {HKEY_CURRENT_USER,   L"Software\\Classes\\CLSID\\" SZ_CLSID_RECIPETHUMBHANDLER,                     L"DisableProcessIsolation", L"1"},
+            {HKEY_CURRENT_USER,   L"Software\\Classes\\CLSID\\" SZ_CLSID_RECIPETHUMBHANDLER L"\\InProcServer32",                       NULL, szModuleName},
+            {HKEY_CURRENT_USER,   L"Software\\Classes\\CLSID\\" SZ_CLSID_RECIPETHUMBHANDLER L"\\InProcServer32", L"ThreadingModel",          L"Apartment"},
             // TODO {e357fccd-a995-4576-b01f-234630154e96} is magic for IThumbnailProvider
             {HKEY_CURRENT_USER,   L"Software\\Classes\\.cbz\\ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}",            NULL,                           SZ_CLSID_RECIPETHUMBHANDLER},
+            {HKEY_CURRENT_USER,   L"Software\\Classes\\.cbr\\ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}",            NULL,                           SZ_CLSID_RECIPETHUMBHANDLER},
+            {HKEY_CURRENT_USER,   L"Software\\Classes\\.cb7\\ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}",            NULL,                           SZ_CLSID_RECIPETHUMBHANDLER},
+            {HKEY_CURRENT_USER,   L"Software\\Classes\\.epub\\ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}",            NULL,                           SZ_CLSID_RECIPETHUMBHANDLER},
+            {HKEY_CURRENT_USER,   L"Software\\Classes\\.epub3\\ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}",            NULL,                           SZ_CLSID_RECIPETHUMBHANDLER},
+            {HKEY_CURRENT_USER,   L"Software\\Classes\\.mobi\\ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}",            NULL,                           SZ_CLSID_RECIPETHUMBHANDLER},
+            {HKEY_CURRENT_USER,   L"Software\\Classes\\.azw\\ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}",            NULL,                           SZ_CLSID_RECIPETHUMBHANDLER},
+            {HKEY_CURRENT_USER,   L"Software\\Classes\\.azw3\\ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}",            NULL,                           SZ_CLSID_RECIPETHUMBHANDLER},
+            {HKEY_CURRENT_USER,   L"Software\\Classes\\.zip\\ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}",            NULL,                           SZ_CLSID_RECIPETHUMBHANDLER},
+            {HKEY_CURRENT_USER,   L"Software\\Classes\\.rar\\ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}",            NULL,                           SZ_CLSID_RECIPETHUMBHANDLER},
+            {HKEY_CURRENT_USER,   L"Software\\Classes\\.7z\\ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}",            NULL,                           SZ_CLSID_RECIPETHUMBHANDLER},
+            {HKEY_CURRENT_USER,   L"Software\\Classes\\.tar\\ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}",            NULL,                           SZ_CLSID_RECIPETHUMBHANDLER},
+            {HKEY_CURRENT_USER,   L"Software\\Classes\\.rar5\\ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}",            NULL,                           SZ_CLSID_RECIPETHUMBHANDLER},
         };
 
         hr = S_OK;
@@ -217,7 +229,8 @@ STDAPI DllRegisterServer()
     {
         // This tells the shell to invalidate the thumbnail cache.  This is important because any .recipe files
         // viewed before registering this handler would otherwise show cached blank thumbnails.
-        SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, NULL, NULL);
+        SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST | SHCNF_FLUSHNOWAIT | SHCNF_NOTIFYRECURSIVE, NULL, NULL);
+
     }
     return hr;
 }
