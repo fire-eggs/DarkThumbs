@@ -19,6 +19,7 @@
 // TODO header
 int Generic(const std::wstring& path, BOOL sort, uint64_t* size, const BitInFormat* fmt);
 int Epub(const std::wstring& path, uint64_t* size);
+HRESULT ExtractMobiCover(const std::wstring& filepath, HBITMAP* phBmpThumbnail);
 
 // this thumbnail provider implements IInitializeWithStream to enable being hosted
 // in an isolated process for robustness
@@ -119,12 +120,19 @@ IFACEMETHODIMP CRecipeThumbProvider::GetThumbnail(UINT cx, HBITMAP *phbmp, WTS_A
     int index = -1;
     BitInFormat *format;
 
-    if (ext == L"epub")
+    if (ext == L"epub" || ext == L"epub3")
     {
         format = (BitInFormat*)&BitFormat::Zip;
         index = Epub(_filepath, &outsize);
+        // If metadata search, treat the epub as a generic ZIP
         if (index == -1)
             index = Generic(_filepath, m_bSort, &outsize, format);
+    }
+    else if (ext == L"mobi" || ext == L"azw" || ext == L"azw3")
+    {
+        HRESULT hr = ExtractMobiCover(_filepath, phbmp);
+        *pdwAlpha = WTSAT_UNKNOWN;
+        return hr;
     }
     else
     {
@@ -138,35 +146,15 @@ IFACEMETHODIMP CRecipeThumbProvider::GetThumbnail(UINT cx, HBITMAP *phbmp, WTS_A
             return E_FAIL;
         }
     }
-/*
-    try
-    {
-    }
-    catch (...)//(const std::logic_error& ex)
-    {
-        // NOT generic, look for epub, mobi, fb
 
-        if (ext == L"epub")
-        {
-            int index = Epub(_filepath, &outsize);
-
-            // TODO if index === -1 call generic(zip)
-            if (index == -1)
-            {
-                LOGINFO(L"No image");
-                return E_FAIL;
-            }
-            HRESULT res = doBmp((wchar_t*)_filepath, index, &BitFormat::Zip, outsize, phbmp);
-            *pdwAlpha = WTSAT_UNKNOWN;
-            return res;
-        }
-    }
-*/
     if (index == -1)
     {
         LOGINFO(L"No image");
         return E_FAIL;
     }
+
+    // TODO what is required to support a SVG file?
+
     HRESULT res = doBmp((wchar_t*)_filepath, index, format, outsize, phbmp);
     *pdwAlpha = WTSAT_UNKNOWN;
     return res;

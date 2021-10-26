@@ -233,3 +233,56 @@ bit7z::BitInFormat* IsGeneric(const std::wstring& ext)
             return (BitInFormat *)formats[i];
     throw new std::logic_error("");
 }
+
+HBITMAP ThumbnailFromIStream(IStream* pIs, const LPSIZE pThumbSize, bool showIcon)
+{
+    HBITMAP phbmp;
+    UINT cx = 256;
+    WTS_ALPHATYPE pdwAlpha = WTSAT_UNKNOWN;
+    HRESULT hr = WICCreate32BitsPerPixelHBITMAP(pIs, cx, &phbmp, &pdwAlpha);
+    pIs->Release();
+    return phbmp;
+/*
+    CImage ci;//uses gdi+ internally
+    if (S_OK != ci.Load(pIs)) return NULL;
+
+    //check size
+    int tw = ci.GetWidth();
+    int th = ci.GetHeight();
+    float cx = (float)pThumbSize->cx;
+    float cy = (float)pThumbSize->cy;
+    float rx = cx / (float)tw;
+    float ry = cy / (float)th;
+
+    //if bigger size
+    if ((rx < 1) || (ry < 1))
+    {
+        CDC hdcNew = ::CreateCompatibleDC(NULL);
+        if (hdcNew.IsNull()) return NULL;
+
+        hdcNew.SetStretchBltMode(HALFTONE);
+        hdcNew.SetBrushOrg(0, 0, NULL);
+        //variables retain values until assignment
+        tw = (int)(min(rx, ry) * tw);//C424 warning workaround
+        th = (int)(min(rx, ry) * th);
+
+        CBitmap hbmpNew;
+        hbmpNew.CreateCompatibleBitmap(ci.GetDC(), tw, th);
+        ci.ReleaseDC();//don't forget!
+        if (hbmpNew.IsNull()) return NULL;
+
+        HBITMAP hbmpOld = hdcNew.SelectBitmap(hbmpNew);
+        hdcNew.FillSolidRect(0, 0, tw, th, RGB(255, 255, 255));//white background
+
+        Draw(ci, hdcNew, 0, 0, tw, th, 0, 0, ci.GetWidth(), ci.GetHeight(), Gdiplus::InterpolationMode::InterpolationModeHighQualityBicubic);//too late for error checks
+        if (showIcon)
+            DrawIcon(hdcNew, 0, 0, zipIcon);
+
+        hdcNew.SelectBitmap(hbmpOld);
+
+        return hbmpNew.Detach();
+    }
+
+    return ci.Detach();
+    */
+}
