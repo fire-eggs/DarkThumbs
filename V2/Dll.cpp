@@ -13,10 +13,11 @@
 
 extern HRESULT CRecipeThumbProvider_CreateInstance(REFIID riid, void **ppv);
 
-#define SZ_CLSID_RECIPETHUMBHANDLER     L"{50d9450f-2a80-4f08-93b9-2eb526477d1b}"
-#define SZ_RECIPETHUMBHANDLER           L"Darkthumbs Thumbnail Handler"
+// {70EA7DE2-F3A2-4470-9F39-91C867312B56}
+const CLSID CLSID_RecipeThumbHandler = { 0x70ea7de2, 0xf3a2, 0x4470, { 0x9f, 0x39, 0x91, 0xc8, 0x67, 0x31, 0x2b, 0x56 } };
 
-const CLSID CLSID_RecipeThumbHandler    = {0x50d9450f, 0x2a80, 0x4f08, {0x93, 0xb9, 0x2e, 0xb5, 0x26, 0x47, 0x7d, 0x1b}};
+#define SZ_CLSID_RECIPETHUMBHANDLER     L"{70EA7DE2-F3A2-4470-9F39-91C867312B56}"
+#define SZ_RECIPETHUMBHANDLER           L"Darkthumbs Thumbnail Handler"
 
 typedef HRESULT (*PFNCREATEINSTANCE)(REFIID riid, void **ppvObject);
 struct CLASS_OBJECT_INIT
@@ -200,7 +201,7 @@ STDAPI DllRegisterServer()
         {
             // RootKey            KeyName                                                                        ValueName                   Data
             {HKEY_CURRENT_USER,   L"Software\\Classes\\CLSID\\" SZ_CLSID_RECIPETHUMBHANDLER,                                           NULL, SZ_RECIPETHUMBHANDLER},
-            {HKEY_CURRENT_USER,   L"Software\\Classes\\CLSID\\" SZ_CLSID_RECIPETHUMBHANDLER,                     L"DisableProcessIsolation", L"1"},
+            //{HKEY_CURRENT_USER,   L"Software\\Classes\\CLSID\\" SZ_CLSID_RECIPETHUMBHANDLER,                     L"DisableProcessIsolation", L"1"},
             {HKEY_CURRENT_USER,   L"Software\\Classes\\CLSID\\" SZ_CLSID_RECIPETHUMBHANDLER L"\\InProcServer32",                       NULL, szModuleName},
             {HKEY_CURRENT_USER,   L"Software\\Classes\\CLSID\\" SZ_CLSID_RECIPETHUMBHANDLER L"\\InProcServer32", L"ThreadingModel",          L"Apartment"},
             // TODO {e357fccd-a995-4576-b01f-234630154e96} is magic for IThumbnailProvider
@@ -224,6 +225,13 @@ STDAPI DllRegisterServer()
         {
             hr = CreateRegKeyAndSetValue(&rgRegistryEntries[i]);
         }
+
+        {
+            HKEY hKey = NULL;
+            RegCreateKeyEx(HKEY_CLASSES_ROOT, L"Software\\Classes\\CLSID\\" SZ_CLSID_RECIPETHUMBHANDLER, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hKey, NULL);
+            WCHAR data[4] = { 0x01, 0x00, 0x00, 0x00 };
+            RegSetValueEx(hKey, L"DisableProcessIsolation", 0, REG_DWORD, reinterpret_cast<const BYTE*>(data), 4);
+        }
     }
     if (SUCCEEDED(hr))
     {
@@ -242,6 +250,7 @@ STDAPI DllUnregisterServer()
 {
     HRESULT hr = S_OK;
 
+    // TODO all the target extensions
     const PCWSTR rgpszKeys[] =
     {
         L"Software\\Classes\\CLSID\\" SZ_CLSID_RECIPETHUMBHANDLER,
