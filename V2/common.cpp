@@ -286,3 +286,24 @@ HBITMAP ThumbnailFromIStream(IStream* pIs, const LPSIZE pThumbSize, bool showIco
     return ci.Detach();
     */
 }
+
+std::string urlDecode(std::string& SRC)
+{
+    std::string ret;
+    for (int i = 0; i < SRC.length(); i++)
+    {
+        if (int(SRC[i]) == 37) // 37 is '%'
+        {
+            int ii;
+            sscanf(SRC.substr(i + 1, 2).c_str(), "%x", &ii);
+            char ch = static_cast<char>(ii);
+            ret += ch;
+            i = i + 2;
+        }
+        else
+        {
+            ret += SRC[i];
+        }
+    }
+    return (ret);
+}

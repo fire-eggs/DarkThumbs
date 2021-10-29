@@ -13,3 +13,5 @@ std::wstring tail(std::wstring const& source, size_t const length);
 bit7z::BitInFormat* IsGeneric(const std::wstring& ext);
 
 HBITMAP ThumbnailFromIStream(IStream* pIs, const LPSIZE pThumbSize, bool showIcon);
+
+std::string urlDecode(std::string& SRC);

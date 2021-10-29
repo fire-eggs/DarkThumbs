@@ -91,7 +91,6 @@ int findRootFile(const std::wstring& path, const vector<BitArchiveItem>& items, 
 
     posStart += 11;
     size_t posEnd = xmlContent.find("\"", posStart);
-
     rootpath = xmlContent.substr(posStart, posEnd - posStart);
 
     int res = searchByPath(items, rootpath);
@@ -100,26 +99,11 @@ int findRootFile(const std::wstring& path, const vector<BitArchiveItem>& items, 
     if (posStart != std::string::npos) {
         rootpath = rootpath.substr(0, posStart + 1);
     }
+    else
+        rootpath = ""; // Botany, Programming Pearls: OPF file is at the root, there is no path
+
 
     return res;
-
-/*
-    std::replace(rootfile.begin(), rootfile.end(), '/', '\\');  // NOTE: bit7z has rationalized all slashes to backslash
-
-    int rootdex = 0;
-    found = false;
-    for (auto& item : items)
-    {
-        if (found = (item.path() == get_wstring(rootfile)))
-            break;
-        rootdex++;
-    }
-
-    if (!found)
-        return -1; // TODO logging
-
-    return rootdex;
-*/
 }
 
 // A brute-force search for the first image file with "cover" in its name.
@@ -146,17 +130,119 @@ int findCover(const vector<BitArchiveItem>& items, uint64_t *size)
     return -1;
 }
 
-int searchMeta(const std::string& xml, const vector<BitArchiveItem>& items)
+// Search the text of the OPF file [XML] for a <meta> tag with an attribute <name> of "cover".
+// returns the text of the matching <content> attribute, empty string if none.
+//
+std::string metaCover(const std::string& xmlContent)
+{
+    // Find meta tag for cover
+    // I.e. searching for '<meta name="cover" content="cover"/>'
+
+    std::string coverTag, coverId, itemTag;
+
+    size_t posStart = xmlContent.find("name=\"cover\"");
+
+    if (posStart == std::string::npos) {
+        return coverId;
+    }
+
+    posStart = xmlContent.find_last_of("<", posStart);
+    size_t posEnd = xmlContent.find(">", posStart);
+
+    coverTag = xmlContent.substr(posStart, posEnd - posStart + 1);
+
+    // Find cover item id
+
+    posStart = coverTag.find("content=\"");
+
+    if (posStart == std::string::npos) {
+        return coverId;
+    }
+
+    posStart += 9;
+    posEnd = coverTag.find("\"", posStart);
+
+    coverId = coverTag.substr(posStart, posEnd - posStart);
+    return coverId;
+}
+
+// Search the text of the OPF file [XML] for a <item> tag with an <id> attribute with a given value.
+// returns the text of the matching <href> attribute, empty string if none.
+//
+std::string manifestId(const std::string& xmlContent, const std::string& coverId)
+{
+    // Find item tag in original opf file contents
+    // I.e. searching for '<item href="cover.jpeg" id="cover" media-type="image/jpeg"/>'. The id
+    // value matching the "content" value from before.
+
+    size_t posStart, posEnd;
+
+    posStart = xmlContent.find("id=\"" + coverId + "\"");
+    if (posStart != std::string::npos)
+    {
+        posStart = xmlContent.find_last_of("<", posStart);
+        posEnd = xmlContent.find(">", posStart);
+
+        std::string itemTag = xmlContent.substr(posStart, posEnd - posStart + 1);
+
+        // Find cover path in item tag
+
+        posStart = itemTag.find("href=\"");
+
+        if (posStart != std::string::npos)
+        {
+            posStart += 6;
+            posEnd = itemTag.find("\"", posStart);
+
+            if (posEnd != std::string::npos)
+            {
+                return itemTag.substr(posStart, posEnd - posStart);
+            }
+        }
+    }
+    return "";
+}
+
+// Search the text of the OPF file [XML] for a set of <meta> and <item> tags which specify the cover file.
+// These are of the form:
+// <meta name="cover" content="id-val"/>
+// ...
+// <item href="images\cover.jpeg" id="id-val" media-type="image/jpeg"/>
+// Note the 'id-val' from the <meta> matches the 'id-val' in the <item>
+//
+// Returns the index to the matching item within the archive, or -1 if none
+//
+int searchMeta(const std::string& xml, const vector<BitArchiveItem>& items, std::string& rootpath)
 {
     // search for '<meta name="cover" content="cover"/>'
     // then search for '<item href="cover.jpeg" id="cover" media-type="image/jpeg"/>'. The id val match earlier search
-    return -1;
+    // then find the item id within the archive
+
+    std::string coverId = metaCover(xml);
+    if (coverId.empty())
+        return -1;
+
+    std::string secondId = manifestId(xml, coverId);
+    if (secondId.empty())
+        return -1;
+
+    std::string subpath = rootpath + secondId;
+    subpath = urlDecode(subpath); // Required for encoded chars, see gallun.epub
+    return searchByPath(items, subpath);
 }
 
-int searchManifest(const std::string& xmlContent, const vector<BitArchiveItem>& items, int rootdex, std::string& rootpath)
+// Search the text of the OPF file [XML] for a <manifest> tag which specifies the cover file.
+// These will typically be of the form:
+// ...
+// <manifest>
+// ...
+// <item id = "cover-image" properties = "cover-image" href = "images/a-christmas-carol.jpg" media - type = "image/jpeg" / >
+//
+// Returns the index to the matching item within the archive, or -1 if none
+//
+int searchManifest(const std::string& xmlContent, const vector<BitArchiveItem>& items, std::string& rootpath)
 {
     // search for a <manifest> cover item with id="cover-image"
-
 
     size_t posManifest = xmlContent.find("<manifest>");
     if (posManifest == std::string::npos) return -1;
@@ -169,12 +255,12 @@ int searchManifest(const std::string& xmlContent, const vector<BitArchiveItem>& 
     if (posItem == std::string::npos) return -1;
 
     // find the href
-    size_t posHref = xmlContent.find("href=\"", posItem);  // TODO this might not match in *this* item
+    size_t posHref = xmlContent.find("href=\"", posItem);
     posHref += 6;
     size_t posEnd = xmlContent.find("\"", posHref);
 
-    // TODO rootpath + xmlC.substr()
-    std::string subpath = rootpath + xmlContent.substr(posHref, posEnd - posHref);
+    // specified path is relative to the rootpath
+    std::string subpath = rootpath + xmlContent.substr(posHref, posEnd - posHref); // TODO possibly requires urlDecode?
     return searchByPath(items, subpath);
 }
 
@@ -183,6 +269,10 @@ int searchXHtml()
     return -1;
 }
 
+// Search the text of the Epub OPF file [XML] for some specification of the cover image.
+//
+// Returns the index to the matching item within the archive, or -1 if none
+//
 int findMetaCover(const std::wstring& path, std::string& rootpath, int rootdex, const vector<BitArchiveItem>& items, uint64_t* size, BitExtractor *bex)
 {
     int imgDex = -1;
@@ -194,11 +284,11 @@ int findMetaCover(const std::wstring& path, std::string& rootpath, int rootdex, 
 
     // search for '<meta name="cover" content="cover"/>'
     // then search for '<item href="cover.jpeg" id="cover" media-type="image/jpeg"/>'. The id val match earlier search
-    imgDex = searchMeta(xmlContent, items);
+    imgDex = searchMeta(xmlContent, items, rootpath);
 
     // search for a <manifest> cover item with id="cover-image"
     if (imgDex == -1)
-        imgDex = searchManifest(xmlContent, items, rootdex, rootpath);
+        imgDex = searchManifest(xmlContent, items, rootpath);
 
     // Search for a <manifest> cover item and an image path via HTML file
     if (imgDex == -1)
