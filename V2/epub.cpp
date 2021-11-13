@@ -264,9 +264,82 @@ int searchManifest(const std::string& xmlContent, const vector<BitArchiveItem>& 
     return searchByPath(items, subpath);
 }
 
-int searchXHtml()
+/*
+Handle the case where the epub has a <manifest> item for the cover which points to 
+a secondary xhtml / xml file. In *that* secondary file, the cover image is specified
+as a filename within an <img> tag.
+
+<manifest>
+<item id="cover"    href="content/cover.xml"   media-type="application/xhtml+xml" />
+...
+cover.xml:
+...
+<img ... src="filename"... />
+*/
+int searchXHtml(const std::wstring& path, const std::string& xmlContent, const vector<BitArchiveItem>& items, std::string& rootpath, BitExtractor* bex)
 {
-    return -1;
+    size_t posManifest = xmlContent.find("<manifest>");
+    if (posManifest == std::string::npos) return -1;
+
+    size_t posStart = xmlContent.find("id=\"cover\"", posManifest);
+    if (posStart == std::string::npos) return -1;
+
+    // found it, move backward to find owning "<item"
+    size_t posItem = xmlContent.rfind("<item ", posStart);
+    if (posItem == std::string::npos) return -1;
+
+    // find the href
+    size_t posHref = xmlContent.find("href=\"", posItem);
+    posHref += 6;
+    size_t posEnd = xmlContent.find("\"", posHref);
+
+    // specified path is relative to the rootpath
+    std::string subpath = rootpath + xmlContent.substr(posHref, posEnd - posHref); // TODO possibly requires urlDecode?
+
+    std::string imgbase = subpath.substr(0, subpath.find_last_of("/")+1);
+
+    int coverdex = searchByPath(items, subpath);
+    if (coverdex == -1)
+        return -1;
+
+    // The path to the cover image is contained in an xHtml / xml file in an <img> tag.
+    // <img ... src="filename" ...
+    // This path is relative to the folder containing this second file.
+    vector<byte_t> bytes;
+    bex->extract(path, bytes, coverdex);
+    std::string coverxml = (char*)bytes.data();
+
+    // find the <img> tag begin
+    size_t posImg = coverxml.find("<img");
+    if (posImg == std::string::npos) return -1;
+
+    // find the "src=", because it might not be immediately next to the "<img " text.
+    size_t srcStart = coverxml.find("src=", posImg);
+    if (srcStart == std::string::npos) return -1;
+
+    // allowing for whitespace etc, find the quoted filename string
+    size_t qStart = coverxml.find("\"", srcStart);
+    if (qStart == std::string::npos) return -1;
+    size_t qEnd = coverxml.find("\"", qStart + 1);
+    if (qEnd == std::string::npos) return -1;
+
+    std::string fname = coverxml.substr(qStart + 1, qEnd - qStart - 1);
+
+    // "Hope takes flight" had a string of the form "../images/filename.jpg".
+    if (fname[0] == '.' && fname[1] == '.' && fname[2] == '/')
+        fname = fname.substr(3);
+    
+    // Try two variants of the image search path, as required to work for
+    // "Hope takes flight" and "Woman an intimate geography".
+    std::string subpath3 = rootpath + fname;
+    int imagedex = searchByPath(items, subpath3);
+    if (imagedex == -1)
+    {
+        // "Woman an intimate geography"
+        std::string subpath2 = rootpath + imgbase + fname;
+        imagedex = searchByPath(items, subpath2);
+    }
+    return imagedex;
 }
 
 // Search the text of the Epub OPF file [XML] for some specification of the cover image.
@@ -292,7 +365,7 @@ int findMetaCover(const std::wstring& path, std::string& rootpath, int rootdex, 
 
     // Search for a <manifest> cover item and an image path via HTML file
     if (imgDex == -1)
-        imgDex = searchXHtml();
+        imgDex = searchXHtml(path, xmlContent, items, rootpath, bex);
 
     if (imgDex == -1)
         return -1;
