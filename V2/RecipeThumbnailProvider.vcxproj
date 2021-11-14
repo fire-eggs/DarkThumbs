@@ -206,6 +206,7 @@
     <ClCompile Include="common.cpp" />
     <ClCompile Include="Dll.cpp" />
     <ClCompile Include="epub.cpp" />
+    <ClCompile Include="fb.cpp" />
     <ClCompile Include="generic.cpp" />
     <ClCompile Include="log.cpp" />
     <ClCompile Include="mobi.cpp" />

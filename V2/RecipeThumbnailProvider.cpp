@@ -20,6 +20,7 @@
 int Generic(const std::wstring& path, BOOL sort, uint64_t* size, const BitInFormat* fmt);
 int Epub(const std::wstring& path, uint64_t* size);
 HRESULT ExtractMobiCover(const std::wstring& filepath, HBITMAP* phBmpThumbnail);
+HRESULT ExtractFBCover(const std::wstring& filepath, HBITMAP* phBmpThumbnail);
 
 // this thumbnail provider implements IInitializeWithStream to enable being hosted
 // in an isolated process for robustness
@@ -131,6 +132,12 @@ IFACEMETHODIMP CRecipeThumbProvider::GetThumbnail(UINT cx, HBITMAP *phbmp, WTS_A
     else if (ext == L"mobi" || ext == L"azw" || ext == L"azw3")
     {
         HRESULT hr = ExtractMobiCover(_filepath, phbmp);
+        *pdwAlpha = WTSAT_UNKNOWN;
+        return hr;
+    }
+    else if (ext == L"fb2")
+    {
+        HRESULT hr = ExtractFBCover(_filepath, phbmp);
         *pdwAlpha = WTSAT_UNKNOWN;
         return hr;
     }

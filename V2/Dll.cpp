@@ -218,6 +218,7 @@ STDAPI DllRegisterServer()
             {HKEY_CURRENT_USER,   L"Software\\Classes\\.7z\\ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}",            NULL,                           SZ_CLSID_RECIPETHUMBHANDLER},
             {HKEY_CURRENT_USER,   L"Software\\Classes\\.tar\\ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}",            NULL,                           SZ_CLSID_RECIPETHUMBHANDLER},
             {HKEY_CURRENT_USER,   L"Software\\Classes\\.rar5\\ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}",            NULL,                           SZ_CLSID_RECIPETHUMBHANDLER},
+            {HKEY_CURRENT_USER,   L"Software\\Classes\\.fb2\\ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}",            NULL,                           SZ_CLSID_RECIPETHUMBHANDLER},
         };
 
         hr = S_OK;

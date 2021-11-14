@@ -69,6 +69,40 @@ void  SaveBitmap(char* szFilename, HBITMAP hBitmap)
     if (fp)      fclose(fp);
 }
 
+// Decodes the base64-encoded string to a stream.
+HRESULT GetStreamFromString(PCWSTR pszImageName, IStream** ppImageStream)
+{
+    HRESULT hr = E_FAIL;
+
+    DWORD dwDecodedImageSize = 0;
+    DWORD dwSkipChars = 0;
+    DWORD dwActualFormat = 0;
+
+    // Base64-decode the string
+    BOOL fSuccess = CryptStringToBinaryW(pszImageName, NULL, CRYPT_STRING_BASE64,
+        NULL, &dwDecodedImageSize, &dwSkipChars, &dwActualFormat);
+    if (fSuccess)
+    {
+        BYTE* pbDecodedImage = (BYTE*)LocalAlloc(LPTR, dwDecodedImageSize);
+        if (pbDecodedImage)
+        {
+            fSuccess = CryptStringToBinaryW(pszImageName, lstrlenW(pszImageName), CRYPT_STRING_BASE64,
+                pbDecodedImage, &dwDecodedImageSize, &dwSkipChars, &dwActualFormat);
+            if (fSuccess)
+            {
+                *ppImageStream = SHCreateMemStream(pbDecodedImage, dwDecodedImageSize);
+                if (*ppImageStream != NULL)
+                {
+                    hr = S_OK;
+                }
+            }
+            LocalFree(pbDecodedImage);
+        }
+    }
+    return hr;
+}
+
+
 HRESULT ConvertBitmapSourceTo32BPPHBITMAP(IWICBitmapSource* pBitmapSource,
     IWICImagingFactory* pImagingFactory,
     HBITMAP* phbmp)
@@ -306,4 +340,30 @@ std::string urlDecode(std::string& SRC)
         }
     }
     return (ret);
+}
+
+HRESULT WICCreate32BitsPerPixelHBITMAP(IStream* pstm, HBITMAP* phbmp)
+{
+    *phbmp = NULL;
+
+    IWICImagingFactory* pImagingFactory;
+    HRESULT hr = CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pImagingFactory));
+    if (SUCCEEDED(hr))
+    {
+        IWICBitmapDecoder* pDecoder;
+        hr = pImagingFactory->CreateDecoderFromStream(pstm, &GUID_VendorMicrosoft, WICDecodeMetadataCacheOnDemand, &pDecoder);
+        if (SUCCEEDED(hr))
+        {
+            IWICBitmapFrameDecode* pBitmapFrameDecode;
+            hr = pDecoder->GetFrame(0, &pBitmapFrameDecode);
+            if (SUCCEEDED(hr))
+            {
+                hr = ConvertBitmapSourceTo32BPPHBITMAP(pBitmapFrameDecode, pImagingFactory, phbmp);
+                pBitmapFrameDecode->Release();
+            }
+            pDecoder->Release();
+        }
+        pImagingFactory->Release();
+    }
+    return hr;
 }

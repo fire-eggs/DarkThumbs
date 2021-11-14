@@ -15,3 +15,8 @@ bit7z::BitInFormat* IsGeneric(const std::wstring& ext);
 HBITMAP ThumbnailFromIStream(IStream* pIs, const LPSIZE pThumbSize, bool showIcon);
 
 std::string urlDecode(std::string& SRC);
+
+HRESULT GetStreamFromString(PCWSTR pszImageName, IStream** ppImageStream);
+
+HRESULT WICCreate32BitsPerPixelHBITMAP(IStream* pstm, HBITMAP* phbmp);
+
