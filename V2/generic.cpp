@@ -47,7 +47,11 @@ int Generic(const std::wstring& path, BOOL sort, uint64_t* size, const BitInForm
         bool firstFile = true;
         for (auto& item : arc_items)
         {
-            if (IsImage(item.extension())) // TODO check for 32M limit
+            // TODO check for 32M limit?
+
+            if (IsImage(item.extension()) &&
+                item.path().find(L"__MACOSX") == std::string::npos  // Issue #36: ignore __MACOSX folder
+                ) 
             {
                 icount++;
                 if (firstFile)
