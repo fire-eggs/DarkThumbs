@@ -810,15 +810,17 @@ try {
 					if (_z.ItemIsDirectory() || (_z.GetItemUnpackedSize() > CBXMEM_MAXBUFFER_SIZE)) continue;
 					if ((_z.GetItemPackedSize()==0) || (_z.GetItemUnpackedSize()==0)) continue;
 
-					if (IsImage(_z.GetItemName()))
+					CString iName = _z.GetItemName();
+					if (iName.Find(L"__MACOSX") == -1 && IsImage(iName)) // Issue #36: ignore Mac resource folder
 					{
 						if (thumbindex<0) thumbindex=i;// assign thumbindex if already sorted
 
 						if (!m_bSort) break;//if NoSort
 						
-						if (prevname.IsEmpty()) prevname=_z.GetItemName();//can't compare empty string
+						if (prevname.IsEmpty()) 
+							prevname=iName;//can't compare empty string
 						//take only first alphabetical name
-						if (-1==StrCmpLogicalW(_z.GetItemName(), prevname))
+						if (-1==StrCmpLogicalW(iName, prevname))
 						{
 							thumbindex=i;
 							prevname=_z.GetItemName();
