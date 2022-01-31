@@ -2,7 +2,10 @@ The V1.4 release:
 - Adds AZW, AZW3 support as part of MOBI
 - So far, testing shows it to be much more stable than prior versions: Explorer hasn't frozen yet.
 
-See the releases page for additional changes in earlier releases.
+Download the installer from the [releases page](https://github.com/fire-eggs/DarkThumbs/releases/tag/V1.4.1).
+Also see the releases page for additional changes in earlier releases.
+
+
 
 # DarkThumbs
 Thumbnail preview in Windows Explorer for EPUB, Kindle (MOBI,AZW,AZW3), CBZ, CBR, RAR and ZIP image archives
