@@ -5,15 +5,19 @@ The V1.4 release:
 Download the installer from the [releases page](https://github.com/fire-eggs/DarkThumbs/releases/tag/V1.4.1).
 Also see the releases page for additional changes in earlier releases.
 
-
-
 # DarkThumbs
-Thumbnail preview in Windows Explorer for EPUB, Kindle (MOBI,AZW,AZW3), CBZ, CBR, RAR and ZIP image archives
+Thumbnail preview support for various archive formats in File Explorer.
 
 ## Screenshot
+![V1.3](Screenshot%20from%202021-08-29%2014-11-11.png)
 
-![V1.3](https://github.com/L0garithmic/DarkThumbs/blob/master/Screenshot%20from%202021-08-29%2014-11-11.png)
-
+## Supported formats
+- EPUB
+- Kindle (MOBI, AZW, AZW3)
+- CBZ
+- CBR
+- RAR
+- ZIP
 
 **With a Little Help From ...**
 
@@ -24,7 +28,7 @@ Visual Studio 2019 using Windows 10 SDK
 
 Uses the Windows Template Library (wtl) via Nuget.
 
-## Minimium system requirements
+## Minimum system requirements
 Windows 7/8/8.1/10 (32/64-bit)
 
 ## Credits
