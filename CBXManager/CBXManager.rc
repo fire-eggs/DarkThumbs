@@ -8,9 +8,6 @@
 #include <atlres.h>
 #include "resource.h"
 
-
-
-
 //
 // Dialog resources
 //
@@ -25,28 +22,31 @@ FONT 8, "MS Shell Dlg 2", 400, 0, 1
     ICON            IDR_MAINFRAME, IDC_STATIC, 13, 11, 11, 10, SS_ICON
 }
 
-
-
-IDD_MAINDLG DIALOG 0, 0, 190, 225
+// X,Y,W,H
+IDD_MAINDLG DIALOG 0, 0, 190, 250
 STYLE DS_CONTEXTHELP | DS_SETFONT | WS_BORDER | WS_CAPTION | WS_DLGFRAME | WS_SYSMENU
 CAPTION "DarkThumbs Manager"
 FONT 8, "Ms Shell Dlg"
 {
-    GROUPBOX        "File types", IDC_TH_GROUP, 10, 5, 170, 100
-    GROUPBOX        "Advanced", IDC_SORT_ADVOPTGROUP, 10, 110, 170, 90
-    PUSHBUTTON      "Cancel", IDCANCEL,  70, 205, 50, 14
-    PUSHBUTTON      "Apply", IDC_APPLY, 130, 205, 50, 14
-    DEFPUSHBUTTON   "OK", IDOK,          10, 205, 50, 14
+    GROUPBOX        "File types", IDC_TH_GROUP, 10, 5, 170, 120
+    GROUPBOX        "Advanced", IDC_SORT_ADVOPTGROUP, 10, 130, 170, 90
+
     AUTOCHECKBOX    "CBZ Image Archives", IDC_CB_CBZ,  20, 15, 145, 10
     AUTOCHECKBOX    "ZIP Archives",       IDC_CB_ZIP,  20, 30, 150, 8
     AUTOCHECKBOX    "EPUB Archives",      IDC_CB_EPUB, 20, 45, 150, 8
     AUTOCHECKBOX    "CBR Image Archives", IDC_CB_CBR,  20, 60, 150, 10
     AUTOCHECKBOX    "RAR Archives",       IDC_CB_RAR,  20, 75, 150, 8
     AUTOCHECKBOX    "MOBI ebooks",        IDC_CB_MOBI, 20, 90, 150, 8
-	AUTOCHECKBOX    "Sort images alphabetically", IDC_CB_SORT, 20, 125, 155, 8
-    LTEXT           "Uncheck to sort images by archive order.\nRequired to display custom thumbnail.", IDC_SORT_DESC, 30, 136, 145, 18, SS_LEFT, WS_EX_TRANSPARENT
-	AUTOCHECKBOX    "Show archive indicator", IDC_CB_SHOWICON, 20, 159, 150, 8
-	LTEXT           "Display a ZIP icon top-left of thumbnail to let you know it's an archive.", IDC_CB_SHOWICON_DESC, 30, 170, 145, 18, SS_LEFT, WS_EX_TRANSPARENT
+    AUTOCHECKBOX    "FB2 ebooks",         IDC_CB_FB,   20, 105, 150, 8
+    AUTOCHECKBOX    "Sort images alphabetically", IDC_CB_SORT, 20, 140, 155, 8
+    LTEXT           "Uncheck to sort images by archive order.\nRequired to display custom thumbnail.", IDC_SORT_DESC, 30, 155, 145, 18, SS_LEFT, WS_EX_TRANSPARENT
+	AUTOCHECKBOX    "Show archive indicator", IDC_CB_SHOWICON, 20, 170, 150, 8
+	LTEXT           "Display a ZIP icon top-left of thumbnail to let you know it's an archive.", IDC_CB_SHOWICON_DESC, 30, 185, 145, 18, SS_LEFT, WS_EX_TRANSPARENT
+
+    PUSHBUTTON      "Cancel", IDCANCEL, 70, 215, 50, 14
+    PUSHBUTTON      "Apply", IDC_APPLY, 130, 215, 50, 14
+    DEFPUSHBUTTON   "OK", IDOK, 10, 215, 50, 14
+
 }
 
 

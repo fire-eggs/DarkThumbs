@@ -15,13 +15,19 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_42DEBCE64B514AFD913CF15D3E551890"
+        "MsmKey" = "8:_3942682CD4C24507ACAD1FEB3056BFF4"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_E73085B04A5943D7992CDD6ECD9C2701"
+        "MsmKey" = "8:_BD2C4F4E22614464B2B37F87ABB0FAA7"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_F7428C1D0B254324BB5017C14DE51944"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -112,12 +118,52 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_E73085B04A5943D7992CDD6ECD9C2701"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_3942682CD4C24507ACAD1FEB3056BFF4"
             {
             "SourcePath" = "8:..\\vcruntime140_1.dll"
             "TargetName" = "8:vcruntime140_1.dll"
             "Tag" = "8:"
-            "Folder" = "8:_2ED4FB936F6E4E72BC588BFD6F90E0D4"
+            "Folder" = "8:_B40C6D2AB9504F518EAC6A5E8CD45DC8"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_BD2C4F4E22614464B2B37F87ABB0FAA7"
+            {
+            "SourcePath" = "8:..\\UnRAR64.dll"
+            "TargetName" = "8:UnRAR64.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_B40C6D2AB9504F518EAC6A5E8CD45DC8"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F7428C1D0B254324BB5017C14DE51944"
+            {
+            "SourcePath" = "8:..\\CBXManager\\DarkThumbsIcon.ico"
+            "TargetName" = "8:DarkThumbsIcon.ico"
+            "Tag" = "8:"
+            "Folder" = "8:_B40C6D2AB9504F518EAC6A5E8CD45DC8"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -170,17 +216,6 @@
             "Property" = "8:ProgramFiles64Folder"
                 "Folders"
                 {
-                    "{9EF0B969-E518-4E46-987F-47570745A589}:_2ED4FB936F6E4E72BC588BFD6F90E0D4"
-                    {
-                    "Name" = "8:DarkThumbs"
-                    "AlwaysCreate" = "11:FALSE"
-                    "Condition" = "8:"
-                    "Transitive" = "11:FALSE"
-                    "Property" = "8:_1BC52BC305174C479D463411B8B7B841"
-                        "Folders"
-                        {
-                        }
-                    }
                 }
             }
             "{1525181F-901A-416C-8A58-119130FE478E}:_F5B41F1A720C4F73B8C25E8AF1460DEC"
@@ -211,7 +246,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:DarkThumbs"
         "ProductCode" = "8:{013F427C-694E-4E49-9DDF-69C26CED07E5}"
-        "PackageCode" = "8:{28E5E449-F9EF-49F5-816F-9D3A3EC17229}"
+        "PackageCode" = "8:{F3A6B30E-4922-491A-A921-D01C54E35457}"
         "UpgradeCode" = "8:{AF24A565-E9E1-4A07-B720-56F2F458A4DD}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"
@@ -331,18 +366,18 @@
         }
         "Shortcut"
         {
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_13CF6974A3F44763AF02C36CDD814884"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_5B6C73CF4A174A2C9E10E2EDCFEDCB6C"
             {
-            "Name" = "8:DarkThumbs"
+            "Name" = "8:DarkThumbs Manager"
             "Arguments" = "8:"
             "Description" = "8:"
             "ShowCmd" = "3:1"
-            "IconIndex" = "3:128"
+            "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_42DEBCE64B514AFD913CF15D3E551890"
+            "Target" = "8:_8C03845398A0458BBB22F254C8847C56"
             "Folder" = "8:_A6BB517CDE97425D8723E2202C911AD9"
-            "WorkingFolder" = "8:_2ED4FB936F6E4E72BC588BFD6F90E0D4"
-            "Icon" = "8:_42DEBCE64B514AFD913CF15D3E551890"
+            "WorkingFolder" = "8:_B40C6D2AB9504F518EAC6A5E8CD45DC8"
+            "Icon" = "8:_F7428C1D0B254324BB5017C14DE51944"
             "Feature" = "8:"
             }
         }
@@ -744,12 +779,12 @@
         }
         "ProjectOutput"
         {
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_2E951AA0CF88407FAE115A8DC2065F2E"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_256CE0C0A5934C538AE770615F6150BB"
             {
-            "SourcePath" = "8:"
+            "SourcePath" = "8:..\\x64\\Release\\CBXShell.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
-            "Folder" = "8:_2ED4FB936F6E4E72BC588BFD6F90E0D4"
+            "Folder" = "8:_B40C6D2AB9504F518EAC6A5E8CD45DC8"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -765,19 +800,19 @@
             "IsolateTo" = "8:"
             "ProjectOutputGroupRegister" = "3:1"
             "OutputConfiguration" = "8:Release|x64"
-            "OutputGroupCanonicalName" = "8:ContentFiles"
+            "OutputGroupCanonicalName" = "8:Built"
             "OutputProjectGuid" = "8:{1A108438-5306-4026-B269-41BAA61ACCB3}"
             "ShowKeyOutput" = "11:TRUE"
                 "ExcludeFilters"
                 {
                 }
             }
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_42DEBCE64B514AFD913CF15D3E551890"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_8C03845398A0458BBB22F254C8847C56"
             {
             "SourcePath" = "8:..\\x64\\Release\\CBXManager.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
-            "Folder" = "8:_2ED4FB936F6E4E72BC588BFD6F90E0D4"
+            "Folder" = "8:_B40C6D2AB9504F518EAC6A5E8CD45DC8"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -795,34 +830,6 @@
             "OutputConfiguration" = "8:Release|x64"
             "OutputGroupCanonicalName" = "8:Built"
             "OutputProjectGuid" = "8:{D3E3653C-61EC-4AC8-A283-F9784128948C}"
-            "ShowKeyOutput" = "11:TRUE"
-                "ExcludeFilters"
-                {
-                }
-            }
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_F9C622C783824EAFBFF8A86E898EBCA3"
-            {
-            "SourcePath" = "8:..\\x64\\Release\\CBXShell.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_2ED4FB936F6E4E72BC588BFD6F90E0D4"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            "ProjectOutputGroupRegister" = "3:4"
-            "OutputConfiguration" = "8:Release|x64"
-            "OutputGroupCanonicalName" = "8:Built"
-            "OutputProjectGuid" = "8:{1A108438-5306-4026-B269-41BAA61ACCB3}"
             "ShowKeyOutput" = "11:TRUE"
                 "ExcludeFilters"
                 {

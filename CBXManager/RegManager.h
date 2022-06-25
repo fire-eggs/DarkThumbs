@@ -26,6 +26,8 @@
 #define CBX_MOBITH1_KEY _T("SOFTWARE\\Classes\\.MOBI\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
 #define CBX_MOBITH2_KEY _T("SOFTWARE\\Classes\\.AZW\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
 #define CBX_MOBITH3_KEY _T("SOFTWARE\\Classes\\.AZW3\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
+#define CBX_FBTH_KEY    _T("SOFTWARE\\Classes\\.FB2\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
+
 // infotip handler keys
 #define CBX_ZIPIH_KEY _T("SOFTWARE\\Classes\\.ZIP\\shellex\\{00021500-0000-0000-C000-000000000046}")
 #define CBX_CBZIH_KEY _T("SOFTWARE\\Classes\\.CBZ\\shellex\\{00021500-0000-0000-C000-000000000046}")
@@ -43,6 +45,7 @@
 #define CBX_MOBI 6
 #define CBX_AZW 7
 #define CBX_AZW3 8
+#define CBX_FB2  9
 //#define CBX_SORT 5
 
 
@@ -175,6 +178,7 @@ public:
 		case CBX_MOBI: return CBX_MOBITH1_KEY;
 		case CBX_AZW: return CBX_MOBITH2_KEY;
 		case CBX_AZW3: return CBX_MOBITH3_KEY;
+		case CBX_FB2: return CBX_FBTH_KEY;
 		default:break;
 		}
 	return NULL;

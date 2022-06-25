@@ -58,6 +58,7 @@ void CMainDlg::InitUI()
 	Button_SetCheck(GetDlgItem(IDC_CB_RAR),  m_reg.HasTH(CBX_RAR));
 	Button_SetCheck(GetDlgItem(IDC_CB_CBR),  m_reg.HasTH(CBX_CBR));
 	Button_SetCheck(GetDlgItem(IDC_CB_MOBI), m_reg.HasTH(CBX_MOBI));
+	Button_SetCheck(GetDlgItem(IDC_CB_FB), m_reg.HasTH(CBX_FB2));
 	Button_SetCheck(GetDlgItem(IDC_CB_SHOWICON), m_reg.IsShowIconOpt());//CBX_SHOWICON
 	Button_SetCheck(GetDlgItem(IDC_CB_SORT), m_reg.IsSortOpt());//CBX_SORT
 }
@@ -128,6 +129,11 @@ void CMainDlg::OnApplyImpl()
 		bRefresh = TRUE;
 		m_reg.SetHandlers(CBX_AZW3, bRet);
 	}
+	if (bRet != m_reg.HasTH(CBX_FB2))
+	{
+		bRefresh = TRUE;
+		m_reg.SetHandlers(CBX_FB2, bRet);
+	}
 
 	if (bRefresh)
 	{
@@ -193,6 +199,7 @@ LRESULT CMainDlg::OnAppHelp(LPHELPINFO lphi)
 		case IDC_CB_ZIP:
 		case IDC_CB_RAR:
 		case IDC_CB_MOBI:
+		case IDC_CB_FB:
 			// '#' anchors must use id attribute
 			HtmlHelp(m_hWnd, _T("CBXShellHelp.chm::manager.html#optth"), HH_DISPLAY_TOPIC, NULL);
 		break;

@@ -19,3 +19,4 @@
 #define IDC_CB_ZIP                              57682
 #define IDC_CB_SORT                             57683
 #define IDC_CB_CBR                              57684
+#define IDC_CB_FB                               57685

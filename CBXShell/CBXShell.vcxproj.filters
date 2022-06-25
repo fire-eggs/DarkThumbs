@@ -32,6 +32,15 @@
     <ClCompile Include="unzip.cpp">
       <Filter>CBX</Filter>
     </ClCompile>
+    <ClCompile Include="epub.cpp">
+      <Filter>CBX</Filter>
+    </ClCompile>
+    <ClCompile Include="common.cpp">
+      <Filter>CBX</Filter>
+    </ClCompile>
+    <ClCompile Include="fb.cpp">
+      <Filter>CBX</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="StdAfx.h">
@@ -55,6 +64,9 @@
     <ClInclude Include="unzip.h">
       <Filter>CBX</Filter>
     </ClInclude>
+    <ClInclude Include="cunzip.h">
+      <Filter>CBX</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CBXShell.rc">
@@ -68,13 +80,13 @@
     <None Include="CBXShell.rgs">
       <Filter>COM</Filter>
     </None>
-    <None Include="packages.config" />
     <None Include="UnRAR.dll">
       <Filter>3rdParty</Filter>
     </None>
     <None Include="UnRAR64.dll">
       <Filter>3rdParty</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Midl Include="CBXShell.idl">

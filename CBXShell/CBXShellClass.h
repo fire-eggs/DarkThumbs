@@ -17,6 +17,30 @@ class ATL_NO_VTABLE CCBXShell :
 	public IExtractImage2,
 	public IQueryInfo
 {
+private:
+	void __cdecl logit(LPCWSTR format, ...)
+	{
+		wchar_t buf[4096];
+		wchar_t* p = buf;
+		va_list args;
+		int n;
+
+		va_start(args, format);
+		n = _vsnwprintf(p, sizeof(buf) - 3, format, args);
+		va_end(args);
+
+		p += (n < 0) ? sizeof buf - 3 : n;
+
+		while (p > buf && isspace(p[-1]))
+			*--p = '\0';
+
+		*p++ = '\r';
+		*p++ = '\n';
+		*p = '\0';
+
+		OutputDebugStringW(buf);
+	}
+
 public:
 	HRESULT FinalConstruct(void);
 	void FinalRelease(void);
@@ -46,7 +70,12 @@ public:
 	STDMETHOD(GetLocation)(LPWSTR pszPathBuffer, DWORD cchMax,
 							DWORD *pdwPriority, const SIZE *prgSize,
 							DWORD dwRecClrDepth, DWORD *pdwFlags) { return m_cbx.OnGetLocation(prgSize, pdwFlags); }
-	STDMETHOD(Extract)(HBITMAP* phBmpThumbnail) { return m_cbx.OnExtract(phBmpThumbnail); }
+	STDMETHOD(Extract)(HBITMAP* phBmpThumbnail) 
+	{ 
+		HRESULT res = m_cbx.OnExtract(phBmpThumbnail); 
+		if (res != S_OK) logit(L"*****Fail");
+		return res;
+	}
 	// IExtractImage2
 	STDMETHOD(GetDateStamp)(FILETIME *pDateStamp) { return m_cbx.OnGetDateStamp(pDateStamp);}
 
