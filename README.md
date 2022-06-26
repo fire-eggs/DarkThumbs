@@ -8,7 +8,7 @@ Also see the releases page for additional changes in earlier releases.
 Thumbnail preview support for ebooks and various archive formats in Windows File Explorer.
 
 ## Screenshot
-![V1.3](Screenshot%20from%202021-08-29%2014-11-11.png)
+![V1.5](DarkThumbs15_demo.png)
 
 ## Supported formats
 - EPUB
