@@ -1,18 +1,18 @@
-The V1.4 release:
-- Adds AZW, AZW3 support as part of MOBI
-- So far, testing shows it to be much more stable than prior versions: Explorer hasn't frozen yet.
+The V1.5 release:
+- Adds FB2 support
 
-Download the installer from the [releases page](https://github.com/fire-eggs/DarkThumbs/releases/tag/V1.4.1).
+Download the installer from the [releases page](https://github.com/fire-eggs/DarkThumbs/releases/tag/V1.5).
 Also see the releases page for additional changes in earlier releases.
 
 # DarkThumbs
-Thumbnail preview support for various archive formats in File Explorer.
+Thumbnail preview support for ebooks and various archive formats in Windows File Explorer.
 
 ## Screenshot
 ![V1.3](Screenshot%20from%202021-08-29%2014-11-11.png)
 
 ## Supported formats
 - EPUB
+- FB2
 - Kindle (MOBI, AZW, AZW3)
 - CBZ
 - CBR
@@ -43,4 +43,4 @@ Icons made by [Those Icons](https://www.flaticon.com/authors/those-icons) from [
 
 - Sponsored by [L0garthimic](https://github.com/L0garithmic)
 - V1.0 by [dark-knight404](https://github.com/dark-knight404)
-- V1.1-V1.4 by [fire-eggs](https://github.com/fire-eggs)
+- V1.1-V1.5 by [fire-eggs](https://github.com/fire-eggs)
