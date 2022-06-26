@@ -157,7 +157,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:DarkThumbs"
         "ProductCode" = "8:{7495C7E1-9C49-4452-A8FB-FE283E834417}"
-        "PackageCode" = "8:{35FFD796-EC09-4285-97D7-D86D2A0B55D4}"
+        "PackageCode" = "8:{8053627B-7CBF-4972-9A53-8973905ECA0B}"
         "UpgradeCode" = "8:{2F6469D9-6C92-43DB-B213-B92F3C6FAA5A}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"
