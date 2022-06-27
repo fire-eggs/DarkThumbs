@@ -7,6 +7,11 @@ Also see the releases page for additional changes in earlier releases.
 # DarkThumbs
 Thumbnail preview support for ebooks and various archive formats in Windows File Explorer.
 
+## Minimum system requirements
+Windows 7/8/8.1/10 (32/64-bit)
+
+[Visual C++ Redistributable](https://docs.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2015-2017-2019-and-2022)
+
 ## Screenshot
 ![V1.5](DarkThumbs15_demo.png)
 
@@ -22,14 +27,6 @@ Thumbnail preview support for ebooks and various archive formats in Windows File
 **With a Little Help From ...**
 
 ![logo2](https://github.com/fire-eggs/yagp/blob/master/Files/deleaker_logo.png) - [Deleaker](https://www.deleaker.com) : the _best_ tool for finding memory, GDI and other leaks!
-
-## Built with
-Visual Studio 2019 using Windows 10 SDK
-
-Uses the Windows Template Library (wtl) via Nuget.
-
-## Minimum system requirements
-Windows 7/8/8.1/10 (32/64-bit)
 
 ## Credits
 
