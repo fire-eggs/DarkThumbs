@@ -1,5 +1,6 @@
-The V1.5 release:
+The V1.5.1 release:
 - Adds FB2 support
+- Fixes bugs with the "show archive icon" feature
 
 Download the installer from the [releases page](https://github.com/fire-eggs/DarkThumbs/releases/tag/V1.5).
 Also see the releases page for additional changes in earlier releases.
