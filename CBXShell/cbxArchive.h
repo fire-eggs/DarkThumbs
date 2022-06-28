@@ -73,6 +73,8 @@ HRESULT WICCreate32BitsPerPixelHBITMAP(IStream* pstm, HBITMAP* phbmp);
 
 HRESULT ExtractFBCover(CString filepath, HBITMAP* phBmpThumbnail);
 
+extern void __cdecl logit(LPCWSTR format, ...);
+
 namespace __cbx {
 
 
@@ -215,32 +217,6 @@ public:
 
 class CCBXArchive
 {
-//#ifdef _DEBUG
-	void __cdecl logit(LPCWSTR format, ...)
-	{
-		wchar_t buf[4096];
-		wchar_t* p = buf;
-		va_list args;
-		int n;
-
-		va_start(args, format);
-		n = _vsnwprintf(p, sizeof(buf) - 3, format, args);
-		va_end(args);
-
-		p += (n < 0) ? sizeof buf - 3 : n;
-
-		while (p > buf && isspace(p[-1]))
-			*--p = '\0';
-
-		*p++ = '\r';
-		*p++ = '\n';
-		*p = '\0';
-
-		OutputDebugStringW(buf);
-	}
-//#endif
-
-
 public:
 	CCBXArchive()
 	{
@@ -260,7 +236,7 @@ public:
     //
 	// Extrapolated from mobitool.c in the libmobi repo. See https://github.com/bfabiszewski/libmobi
 	//
-	int fetchMobiCover(const MOBIData* m, HBITMAP* phBmpThumbnail, SIZE thumbSize) 
+	int fetchMobiCover(const MOBIData* m, HBITMAP* phBmpThumbnail, SIZE thumbSize, BOOL showIcon) 
 	{
 		MOBIPdbRecord* record = NULL;
 		MOBIExthHeader* exth = mobi_get_exthrecord_by_tag(m, EXTH_COVEROFFSET);
@@ -277,7 +253,7 @@ public:
 		}
 
 		HGLOBAL hG = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (SIZE_T)record->size);
-		HRESULT hr = E_FAIL;
+		//HRESULT hr = E_FAIL;
 		if (hG)
 		{
 			LPVOID pBuf = ::GlobalLock(hG);
@@ -289,21 +265,21 @@ public:
 				IStream* pIs = NULL;
 				if (S_OK == CreateStreamOnHGlobal(hG, TRUE, (LPSTREAM*)&pIs))//autofree hG
 				{
-					//*phBmpThumbnail = ThumbnailFromIStream(pIs, &thumbSize, false);
-					hr = WICCreate32BitsPerPixelHBITMAP(pIs, phBmpThumbnail);
+					*phBmpThumbnail = ThumbnailFromIStream(pIs, &thumbSize, showIcon);
+					//hr = WICCreate32BitsPerPixelHBITMAP(pIs, phBmpThumbnail);
 					pIs->Release();
 					pIs = NULL;
 				}
 			}
 			GlobalFree(hG);
 		}
-		return hr; // ((*phBmpThumbnail) ? S_OK : E_FAIL);
+		return ((*phBmpThumbnail) ? S_OK : E_FAIL);
 	}
 
 	//
 	// Extrapolated from mobitool.c in the libmobi repo. See https://github.com/bfabiszewski/libmobi
 	//
-	HRESULT ExtractMobiCover(CString filepath, HBITMAP* phBmpThumbnail)
+	HRESULT ExtractMobiCover(CString filepath, HBITMAP* phBmpThumbnail, BOOL showIcon)
 	{
 		MOBI_RET mobi_ret;
 		int ret = S_OK;
@@ -335,7 +311,7 @@ public:
 			return E_FAIL;
 		}
 
-		ret = fetchMobiCover(m, phBmpThumbnail, m_thumbSize);
+		ret = fetchMobiCover(m, phBmpThumbnail, m_thumbSize, showIcon);
 		/* Free MOBIData structure */
 		mobi_free(m);
 		return ret;
@@ -364,7 +340,7 @@ public:
 	// IExtractImage::GetLocation(LPWSTR pszPathBuffer,	DWORD cchMax, DWORD *pdwPriority, const SIZE *prgSize, DWORD dwRecClrDepth, DWORD *pdwFlags)
 	HRESULT OnGetLocation(const SIZE *prgSize, DWORD *pdwFlags)
 	{
-		logit(_T("OnGetLocation"));
+		logit(_T("OnGetLocation (%d,%d)"), prgSize->cx, prgSize->cy);
 
 		//ATLTRACE("IExtractImage2::GetLocation\n");
 		m_thumbSize.cx=prgSize->cx;
@@ -396,16 +372,17 @@ public:
 	//IExtractImage::Extract(HBITMAP* phBmpThumbnail)
 	HRESULT OnExtract(HBITMAP* phBmpThumbnail)
 	{
+		LoadRegistrySettings();
 		*phBmpThumbnail=NULL;
 		//ATLTRACE("IExtractImage::Extract\n");
-		logit(_T("OnExtract '%ls'"), m_cbxFile);
+		logit(_T("OnExtract '%ls' (%d)"), m_cbxFile, m_showIcon ? 1 : 0);
 
 try {
 		switch (m_cbxType)
 		{
 #ifdef _WIN64
 		case CBXTYPE_MOBI:
-			return ExtractMobiCover(m_cbxFile, phBmpThumbnail);
+			return ExtractMobiCover(m_cbxFile, phBmpThumbnail, m_showIcon);
 #endif
 
 		case CBXTYPE_EPUB:
@@ -471,11 +448,11 @@ try {
 							IStream* pIs=NULL;
 							if (S_OK==CreateStreamOnHGlobal(hG, TRUE, (LPSTREAM*)&pIs))//autofree hG
 							{
-								//*phBmpThumbnail= ThumbnailFromIStream(pIs, &m_thumbSize, m_showIcon);
-								HRESULT hr = WICCreate32BitsPerPixelHBITMAP(pIs, phBmpThumbnail);
+								*phBmpThumbnail= ThumbnailFromIStream(pIs, &m_thumbSize, m_showIcon);
+								//HRESULT hr = WICCreate32BitsPerPixelHBITMAP(pIs, phBmpThumbnail);
 								pIs->Release();
 								pIs=NULL;
-								return hr;
+								//return hr;
 							}
 						}
 					}
@@ -536,8 +513,8 @@ try {
 						_r.SetIStream(pIs);
 						if (_r.ProcessItem())
 						{
-							//*phBmpThumbnail = ThumbnailFromIStream(pIs, &m_thumbSize, m_showIcon);
-							HRESULT hr = WICCreate32BitsPerPixelHBITMAP(pIs, phBmpThumbnail);
+							*phBmpThumbnail = ThumbnailFromIStream(pIs, &m_thumbSize, m_showIcon);
+							//HRESULT hr = WICCreate32BitsPerPixelHBITMAP(pIs, phBmpThumbnail);
 						}
 					}
 				}
@@ -786,9 +763,9 @@ public:
 		if (ERROR_SUCCESS==_rk.Open(HKEY_CURRENT_USER, CBX_APP_KEY, KEY_READ))
 		{
 			if (ERROR_SUCCESS==_rk.QueryDWORDValue(_T("NoSort"), _d))
-				m_bSort=(_d==FALSE);
+				m_bSort=(_d == 0);
 			if (ERROR_SUCCESS == _rk.QueryDWORDValue(_T("ShowIcon"), _d))
-				m_showIcon = (_d == TRUE);
+				m_showIcon = (_d == 1);
 		}
 	}
 

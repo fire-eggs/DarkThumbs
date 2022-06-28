@@ -67,7 +67,7 @@ public:
 			if (ERROR_SUCCESS==rk.QueryDWORDValue(_T("NoSort"), d))
 				return (d==FALSE);
 		}
-	return TRUE;
+	return FALSE;
 	}
 
 	void SetSortOpt(BOOL bSort)
@@ -87,7 +87,7 @@ public:
 			if (ERROR_SUCCESS == rk.QueryDWORDValue(_T("ShowIcon"), d))
 				return (d == TRUE);
 		}
-		return TRUE;
+		return FALSE;
 	}
 
 	//////////////

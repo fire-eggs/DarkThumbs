@@ -8,7 +8,7 @@
 HRESULT CCBXShell::FinalConstruct(void)
 {
 	//ATLTRACE("CCBXShell::FinalConstruct\n");
-	m_cbx.LoadRegistrySettings();
+	//m_cbx.LoadRegistrySettings();
 
 return S_OK;
 }

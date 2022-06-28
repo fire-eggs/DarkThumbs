@@ -17,9 +17,9 @@
 
 #define CBXMEM_MAXBUFFER_SIZE 33554432 //32mb
 
-//HBITMAP ThumbnailFromIStream(IStream* pIs, const LPSIZE pThumbSize, bool showIcon);
+HBITMAP ThumbnailFromIStream(IStream* pIs, const LPSIZE pThumbSize, bool showIcon);
 BOOL IsImage(LPCTSTR szFile);
-HRESULT WICCreate32BitsPerPixelHBITMAP(IStream* pstm, HBITMAP* phbmp);
+//HRESULT WICCreate32BitsPerPixelHBITMAP(IStream* pstm, HBITMAP* phbmp);
 
 
 std::string urlDecode(std::string& SRC)
@@ -242,7 +242,7 @@ std::string coverHTML(char* pBuf, std::string rootpath) {
 }
 
 
-HRESULT ExtractEpub(CString m_cbxFile, HBITMAP* phBmpThumbnail, SIZE m_thumbSize, BOOL m_showIcon)
+HRESULT ExtractEpub(CString m_cbxFile, HBITMAP* phBmpThumbnail, SIZE m_thumbSize, BOOL showIcon)
 {
 	HGLOBAL hGContainer = NULL;
 
@@ -400,11 +400,10 @@ test_coverfile:
 					IStream* pIs = NULL;
 					if (S_OK == CreateStreamOnHGlobal(hG, TRUE, (LPSTREAM*)&pIs))//autofree hG
 					{
-//						*phBmpThumbnail = ThumbnailFromIStream(pIs, &m_thumbSize, m_showIcon);
-						HRESULT hr = WICCreate32BitsPerPixelHBITMAP(pIs, phBmpThumbnail);
+						*phBmpThumbnail = ThumbnailFromIStream(pIs, &m_thumbSize, showIcon);
+						//HRESULT hr = WICCreate32BitsPerPixelHBITMAP(pIs, phBmpThumbnail);
 						pIs->Release();
 						pIs = NULL;
-						return hr;
 					}
 				}
 			}

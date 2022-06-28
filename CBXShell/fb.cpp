@@ -58,9 +58,10 @@ HRESULT imageFromId(const std::wstring& fb, const std::wstring& imgid, HBITMAP* 
 	if (SUCCEEDED(hr))
 	{
 		hr = WICCreate32BitsPerPixelHBITMAP(pImageStream, phbmp);
+		//*phbmp = ThumbnailFromIStream(pImageStream, &m_thumbSize, showIcon);
 		pImageStream->Release();
 	}
-	return hr;
+	return hr; // ((*phBmp) ? S_OK : E_FAIL);
 }
 
 //HRESULT ExtractFBCover(const std::wstring& filepath, HBITMAP* phBmpThumbnail)

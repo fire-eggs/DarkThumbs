@@ -15,9 +15,9 @@ BEGIN_OBJECT_MAP(ObjectMap)
 OBJECT_ENTRY(CLSID_CBXShell, CCBXShell)
 END_OBJECT_MAP()
 
-HICON zipIcon;
+HICON zipIcon = NULL;
 
-static void __cdecl logit(LPCWSTR format, ...)
+void __cdecl logit(LPCWSTR format, ...)
 {
 	wchar_t buf[4096];
 	wchar_t* p = buf;
@@ -40,17 +40,18 @@ static void __cdecl logit(LPCWSTR format, ...)
 	OutputDebugStringW(buf);
 }
 
+HINSTANCE _hInstance;
 
 /////////////////////////////////////////////////////////////////////////////
 // DLL Entry Point
 extern "C"
 BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
-	zipIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
-	
+	_hInstance = hInstance;
     if (dwReason == DLL_PROCESS_ATTACH)
     {
-        logit(_T("DT:attach"));
+		zipIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
+		logit(_T("DT:attach"));
         _Module.Init(ObjectMap, hInstance, &LIBID_CBXSHELLLib);
         DisableThreadLibraryCalls(hInstance);
 

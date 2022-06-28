@@ -3,6 +3,8 @@
 #include <wincodec.h>   // Windows Imaging Codecs
 #include <thumbcache.h> // WTS_ALPHATYPE
 
+#include "resource.h"   // zip icon
+
 #define LOGDBG
 #define LOGERR
 
@@ -22,6 +24,7 @@ BOOL IsImage(LPCTSTR szFile)
 	if (StrEqual(_e, _T(".tif")))  return TRUE;
 	if (StrEqual(_e, _T(".tiff"))) return TRUE;
 	if (StrEqual(_e, _T(".webp"))) return TRUE;  // NOTE: works if a webp codec is installed
+	if (StrEqual(_e, _T(".svg"))) return TRUE;  // NOTE: hopefully works if a codec is installed?
 	return FALSE;
 }
 
@@ -53,6 +56,9 @@ static inline BOOL Draw(
 
 	return status == Gdiplus::Ok;
 }
+
+extern HINSTANCE _hInstance;
+extern void __cdecl logit(LPCWSTR format, ...);
 
 HBITMAP ThumbnailFromIStream(IStream* pIs, const LPSIZE pThumbSize, bool showIcon)
 {
@@ -89,8 +95,18 @@ HBITMAP ThumbnailFromIStream(IStream* pIs, const LPSIZE pThumbSize, bool showIco
 		hdcNew.FillSolidRect(0, 0, tw, th, RGB(255, 255, 255));//white background
 
 		Draw(ci, hdcNew, 0, 0, tw, th, 0, 0, ci.GetWidth(), ci.GetHeight(), Gdiplus::InterpolationMode::InterpolationModeHighQualityBicubic);//too late for error checks
-		//if (showIcon)
-		//	DrawIcon(hdcNew, 0, 0, zipIcon);
+		if (showIcon)
+		{
+			logit(_T("showIcon"));
+			if (zipIcon == NULL)
+			{
+				logit(_T("zipIcon NULL"));
+				zipIcon = LoadIcon(_hInstance, MAKEINTRESOURCE(IDI_ICON1));
+			}
+			BOOL res = DrawIcon(hdcNew, 0, 0, zipIcon);
+			if (!res)
+				logit(_T("DrawIcon fail"));
+		}
 
 		hdcNew.SelectBitmap(hbmpOld);
 

@@ -18,18 +18,18 @@ FONT 8, "MS Shell Dlg 2", 400, 0, 1
 {
     GROUPBOX        "", IDC_STATIC, 59, 36, 55, 18
     CTEXT           "OK", IDC_STATIC, 76, 42, 23, 10, SS_CENTER, WS_EX_TRANSPARENT
-    CTEXT           "DarkThumbs Manager\nVersion 4.9", IDC_STATIC, 10, 9, 152, 25, SS_CENTER
+    CTEXT           "DarkThumbs Manager\nVersion 1.5.1", IDC_STATIC, 10, 9, 152, 25, SS_CENTER
     ICON            IDR_MAINFRAME, IDC_STATIC, 13, 11, 11, 10, SS_ICON
 }
 
 // X,Y,W,H
-IDD_MAINDLG DIALOG 0, 0, 190, 210
+IDD_MAINDLG DIALOG 0, 0, 190, 230
 STYLE DS_CONTEXTHELP | DS_SETFONT | WS_BORDER | WS_CAPTION | WS_DLGFRAME | WS_SYSMENU
 CAPTION "DarkThumbs Manager"
 FONT 8, "Ms Shell Dlg"
 {
     GROUPBOX        "File types", IDC_TH_GROUP, 10, 5, 170, 120
-    GROUPBOX        "Advanced", IDC_SORT_ADVOPTGROUP, 10, 130, 170, 50
+    GROUPBOX        "Advanced", IDC_SORT_ADVOPTGROUP, 10, 130, 170, 75
 
     AUTOCHECKBOX    "CBZ Image Archives", IDC_CB_CBZ,  20, 20, 145, 10
     AUTOCHECKBOX    "ZIP Archives",       IDC_CB_ZIP,  20, 35, 150, 8
@@ -42,9 +42,12 @@ FONT 8, "Ms Shell Dlg"
     AUTOCHECKBOX    "Sort images alphabetically", IDC_CB_SORT, 20, 145, 155, 8
     LTEXT           "Uncheck to sort images by archive order.\nRequired to display custom thumbnail.", IDC_SORT_DESC, 30, 155, 145, 18, SS_LEFT, WS_EX_TRANSPARENT
 
-    DEFPUSHBUTTON   "OK",         IDOK,   10, 185, 50, 14
-    PUSHBUTTON      "Cancel", IDCANCEL,   70, 185, 50, 14
-    PUSHBUTTON      "Apply",  IDC_APPLY, 130, 185, 50, 14
+	AUTOCHECKBOX    "Show archive indicator", IDC_CB_SHOWICON, 20, 178, 150, 8
+	LTEXT           "Display a ZIP icon top-left of thumbnail to let you know it's an archive.", IDC_CB_SHOWICON_DESC, 30, 185, 145, 18, SS_LEFT, WS_EX_TRANSPARENT
+
+    DEFPUSHBUTTON   "OK",         IDOK,   10, 210, 50, 14
+    PUSHBUTTON      "Cancel", IDCANCEL,   70, 210, 50, 14
+    PUSHBUTTON      "Apply",  IDC_APPLY, 130, 210, 50, 14
 }
 
 
@@ -60,8 +63,8 @@ IDR_MAINFRAME      ICON           "DarkThumbsIcon.ico"
 // Version Information resources
 //
 VS_VERSION_INFO VERSIONINFO
-    FILEVERSION     4,9,0,0
-    PRODUCTVERSION  4,9,0,0
+    FILEVERSION     1,5,1,0
+    PRODUCTVERSION  1,5,1,0
     FILEOS          VOS__WINDOWS32
     FILETYPE        VFT_APP
     FILESUBTYPE     VFT2_UNKNOWN
@@ -74,10 +77,10 @@ VS_VERSION_INFO VERSIONINFO
         {
             VALUE "CompanyName", "\0"
             VALUE "FileDescription", "DarkThumbs Manager\0"
-            VALUE "FileVersion", "4.10.0.0\0"
-            VALUE "LegalCopyright", "© 2021\0"
+            VALUE "FileVersion", "1.5.1.0\0"
+            VALUE "LegalCopyright", "© 2020-2022 by Kevin Routley\0"
             VALUE "ProductName", "DarkThumbs\0"
-            VALUE "ProductVersion", "4.10.0.0\0"
+            VALUE "ProductVersion", "1.5.1.0\0"
         }
     }
     BLOCK "VarFileInfo"
