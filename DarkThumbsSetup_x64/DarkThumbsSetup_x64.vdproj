@@ -90,10 +90,10 @@
             "ComponentsUrl" = "8:"
                 "Items"
                 {
-                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:Microsoft.Visual.C++.14.0.x64"
                     {
-                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
-                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
+                    "Name" = "8:Visual C++ \"14\" Runtime Libraries (x64)"
+                    "ProductCode" = "8:Microsoft.Visual.C++.14.0.x64"
                     }
                 }
             }
@@ -245,15 +245,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:DarkThumbs"
-        "ProductCode" = "8:{013F427C-694E-4E49-9DDF-69C26CED07E5}"
-        "PackageCode" = "8:{F3A6B30E-4922-491A-A921-D01C54E35457}"
+        "ProductCode" = "8:{305B79DC-7D7D-4F4A-BAB4-4AEAD7020BD4}"
+        "PackageCode" = "8:{D5250C80-267D-4253-B48F-30F17C70F526}"
         "UpgradeCode" = "8:{AF24A565-E9E1-4A07-B720-56F2F458A4DD}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:4.8.0"
+        "ProductVersion" = "8:1.5.1"
         "Manufacturer" = "8:fire-eggs"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -366,9 +366,9 @@
         }
         "Shortcut"
         {
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_5B6C73CF4A174A2C9E10E2EDCFEDCB6C"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_8B270516D14F442C911CDFFE467F341B"
             {
-            "Name" = "8:DarkThumbs Manager"
+            "Name" = "8:DarkThumbs"
             "Arguments" = "8:"
             "Description" = "8:"
             "ShowCmd" = "3:1"
@@ -798,7 +798,7 @@
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
-            "ProjectOutputGroupRegister" = "3:1"
+            "ProjectOutputGroupRegister" = "3:4"
             "OutputConfiguration" = "8:Release|x64"
             "OutputGroupCanonicalName" = "8:Built"
             "OutputProjectGuid" = "8:{1A108438-5306-4026-B269-41BAA61ACCB3}"
