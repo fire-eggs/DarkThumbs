@@ -129,6 +129,7 @@ void CMainDlg::OnApplyImpl()
 		bRefresh = TRUE;
 		m_reg.SetHandlers(CBX_AZW3, bRet);
 	}
+	bRet = (BST_CHECKED == Button_GetCheck(GetDlgItem(IDC_CB_FB)));
 	if (bRet != m_reg.HasTH(CBX_FB2))
 	{
 		bRefresh = TRUE;
