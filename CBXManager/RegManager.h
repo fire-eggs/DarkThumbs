@@ -14,7 +14,7 @@
 
 #define CBX_GUID_KEY _T("{9E6ECB90-5A61-42BD-B851-D3297D9C7F39}") //38+1 TCHAR
 #define CBX_GUID_KEY_SLEN 39
-#define CBX_APP_KEY _T("Software\\T800 Productions\\{9E6ECB90-5A61-42BD-B851-D3297D9C7F39}")
+#define CBX_APP_KEY _T("Software\\DarkThumbs\\{9E6ECB90-5A61-42BD-B851-D3297D9C7F39}")
 
 // per-user settings (HKCU)
 // thumbnail handler keys
