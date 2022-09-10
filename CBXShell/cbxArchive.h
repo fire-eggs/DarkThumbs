@@ -486,7 +486,8 @@ try {
 				else 
 				{
 					//skip solid (long processing time), volumes or encrypted file headers
-					if (_r.IsArchiveSolid() || _r.IsArchiveVolume() || _r.IsArchiveEncryptedHeaders()) return E_FAIL;
+					//if (_r.IsArchiveSolid() || _r.IsArchiveVolume() || _r.IsArchiveEncryptedHeaders()) return E_FAIL;
+					if (_r.IsArchiveVolume() || _r.IsArchiveEncryptedHeaders()) return E_FAIL;
 
 					while (_r.ReadItemInfo())
 					{
@@ -719,7 +720,8 @@ private:
 		CUnRar _r;
 		if (!_r.Open(pszFile)) return -1;
 		//skip solid (long processing time), volumes or encrypted file headers
-		if (_r.IsArchiveSolid() || _r.IsArchiveVolume() || _r.IsArchiveEncryptedHeaders()) return -1;
+		//if (_r.IsArchiveSolid() || _r.IsArchiveVolume() || _r.IsArchiveEncryptedHeaders()) return -1;
+		if (_r.IsArchiveVolume() || _r.IsArchiveEncryptedHeaders()) return -1;
 
 		UINT64 _ps,_us;//my speed optimization?
 		CString prevname;
