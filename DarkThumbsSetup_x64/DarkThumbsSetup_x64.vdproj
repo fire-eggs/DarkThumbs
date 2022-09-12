@@ -254,7 +254,7 @@
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
         "ProductVersion" = "8:1.5.1"
-        "Manufacturer" = "8:fire-eggs"
+        "Manufacturer" = "8:DarkThumbs"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
         "Title" = "8:DarkThumbsSetup_x64"
