@@ -8,6 +8,7 @@
 #include "about.h"
 #include "MainDlg.h"
 
+extern HINSTANCE _hInstance;
 
 BOOL CMainDlg::PreTranslateMessage(MSG* pMsg) { return CWindow::IsDialogMessage(pMsg); }
 BOOL CMainDlg::OnIdle() { return FALSE;}
@@ -46,7 +47,42 @@ LRESULT CMainDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 
 	//set focus to Cancel btn
 	GotoDlgCtrl(GetDlgItem(IDCANCEL));
+
 return FALSE;
+}
+
+HWND CMainDlg::CreateToolTip(int toolID, LPWSTR pszText)
+{
+	if (!toolID || !pszText)
+	{
+		return FALSE;
+	}
+	// Get the window of the tool.
+	HWND hwndTool = GetDlgItem(toolID);
+
+	// Create the tooltip. g_hInst is the global instance handle.
+	HWND hwndTip = CreateWindowEx(NULL, TOOLTIPS_CLASS, NULL,
+		WS_POPUP | TTS_ALWAYSTIP | TTS_BALLOON,
+		CW_USEDEFAULT, CW_USEDEFAULT,
+		CW_USEDEFAULT, CW_USEDEFAULT,
+		m_hWnd, NULL,
+		_hInstance, NULL);
+
+	if (!hwndTool || !hwndTip)
+	{
+		return (HWND)NULL;
+	}
+
+	// Associate the tooltip with the tool.
+	TOOLINFO toolInfo = { 0 };
+	toolInfo.cbSize = sizeof(toolInfo);
+	toolInfo.hwnd = m_hWnd;
+	toolInfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
+	toolInfo.uId = (UINT_PTR)hwndTool;
+	toolInfo.lpszText = pszText;
+	SendMessage(hwndTip, TTM_ADDTOOL, 0, (LPARAM)&toolInfo);
+
+	return hwndTip;
 }
 
 void CMainDlg::InitUI()
@@ -61,6 +97,8 @@ void CMainDlg::InitUI()
 	Button_SetCheck(GetDlgItem(IDC_CB_FB), m_reg.HasTH(CBX_FB2));
 	Button_SetCheck(GetDlgItem(IDC_CB_SHOWICON), m_reg.IsShowIconOpt());//CBX_SHOWICON
 	Button_SetCheck(GetDlgItem(IDC_CB_SORT), m_reg.IsSortOpt());//CBX_SORT
+
+	CreateToolTip(IDC_CB_ZIP, L"ZIP files");
 }
 
 //check ui state,compare to registry state->if!= refresh
@@ -187,38 +225,4 @@ void CMainDlg::CloseDialog(int nVal)
 {
 	DestroyWindow();
 	::PostQuitMessage(nVal);
-}
-
-LRESULT CMainDlg::OnAppHelp(LPHELPINFO lphi)
-{
-	switch (lphi->iCtrlId)
-	{
-		case IDC_TH_GROUP:
-		case IDC_CB_CBZ:
-		case IDC_CB_EPUB:
-		case IDC_CB_CBR:
-		case IDC_CB_ZIP:
-		case IDC_CB_RAR:
-		case IDC_CB_MOBI:
-		case IDC_CB_FB:
-			// '#' anchors must use id attribute
-			HtmlHelp(m_hWnd, _T("CBXShellHelp.chm::manager.html#optth"), HH_DISPLAY_TOPIC, NULL);
-		break;
-
-		case IDC_SORT_ADVOPTGROUP:
-			HtmlHelp(m_hWnd, _T("CBXShellHelp.chm::manager.html#advopt"), HH_DISPLAY_TOPIC, NULL);
-		break;
-
-		case IDC_CB_SORT:
-		case IDC_SORT_DESC:
-			ATLTRACE("HH sort opt\n");
-			HtmlHelp(m_hWnd, _T("CBXShellHelp.chm::FAQ.html#custth"), HH_DISPLAY_TOPIC, NULL);
-		break;
-
-	default:
-			ATLTRACE("HH default\n");
-			HtmlHelp(m_hWnd, _T("CBXShellHelp.chm::manager.html"), HH_DISPLAY_TOPIC, NULL);//about?
-		break;
-	}
-return 0;
 }

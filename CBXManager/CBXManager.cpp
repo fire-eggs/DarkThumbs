@@ -5,6 +5,7 @@
 #include "MainDlg.h"
 
 CAppModule _Module;
+HINSTANCE _hInstance;
 
 int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 {
@@ -53,6 +54,8 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 
 	hRes = _Module.Init(NULL, hInstance);
 	ATLASSERT(SUCCEEDED(hRes));
+
+	_hInstance = hInstance;
 
 	int nRet = Run(lpstrCmdLine, nCmdShow);
 

@@ -4,9 +4,6 @@
 #include "tools.h"
 #include "regmanager.h"
 
-#include <Htmlhelp.h>
-#pragma comment(lib,"Htmlhelp.lib")
-
 class CMainDlg : public CDialogImpl<CMainDlg>, public CUpdateUI<CMainDlg>, public CDialogDrag<CMainDlg>,
 		public CMessageFilter, public CIdleHandler, public CSnapWindow<CMainDlg>, public CDialogHelp<CMainDlg>
 {
@@ -49,9 +46,9 @@ public:
 
 	void CloseDialog(int nVal);
 
-	LRESULT OnAppHelp(LPHELPINFO lphi);
-
 private:
 	CRegManager m_reg;
+	HWND CreateToolTip(int toolID, LPWSTR pszText);
+
 };
 #endif//_MAINDLG_A8394D0D_EE2B_4A00_9FAC_AB8D3B03F078_
