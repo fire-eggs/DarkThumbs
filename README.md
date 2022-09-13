@@ -12,6 +12,7 @@ Windows 7/8/8.1/10 (32/64-bit)
 [Visual C++ Redistributable](https://docs.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2015-2017-2019-and-2022)
 
 ## Screenshot
+(Slightly inaccurate, the manager dialog also has a "show archive icon" option)
 ![V1.5](DarkThumbs15_demo.png)
 
 ## Supported formats
