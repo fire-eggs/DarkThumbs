@@ -23,8 +23,16 @@ BOOL IsImage(LPCTSTR szFile)
 	if (StrEqual(_e, _T(".png")))  return TRUE;
 	if (StrEqual(_e, _T(".tif")))  return TRUE;
 	if (StrEqual(_e, _T(".tiff"))) return TRUE;
-	if (StrEqual(_e, _T(".webp"))) return TRUE;  // NOTE: works if a webp codec is installed
 	if (StrEqual(_e, _T(".svg"))) return TRUE;  // NOTE: hopefully works if a codec is installed?
+
+	// The following require a WIC codec to be installed
+	if (StrEqual(_e, _T(".webp"))) return TRUE;
+	if (StrEqual(_e, _T(".jxr"))) return TRUE;
+	if (StrEqual(_e, _T(".nrw"))) return TRUE;
+	if (StrEqual(_e, _T(".nef"))) return TRUE;
+	if (StrEqual(_e, _T(".dng"))) return TRUE;
+	if (StrEqual(_e, _T(".cr2"))) return TRUE;
+
 	return FALSE;
 }
 
@@ -242,4 +250,17 @@ HRESULT WICCreate32BitsPerPixelHBITMAP(IStream* pstm, HBITMAP* phbmp)
 		pImagingFactory->Release();
 	}
 	return hr;
+}
+
+void addIcon(HBITMAP* phBmpThumbnail)
+{
+	if (*phBmpThumbnail)
+	{
+		HDC hdcMem = CreateCompatibleDC(NULL);
+		HGDIOBJ hbmOld = SelectObject(hdcMem, *phBmpThumbnail);
+		zipIcon = LoadIcon(_hInstance, MAKEINTRESOURCE(IDI_ICON1));
+		BOOL res = DrawIconEx(hdcMem, 0, 0, zipIcon, 150, 150, 0, NULL, DI_NORMAL);
+		SelectObject(hdcMem, hbmOld);
+		DeleteDC(hdcMem);
+	}
 }

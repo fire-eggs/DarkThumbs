@@ -70,6 +70,7 @@ inline BOOL StrEqual(LPCTSTR psz1, LPCTSTR psz2);
 BOOL IsImage(LPCTSTR szFile);
 HBITMAP ThumbnailFromIStream(IStream* pIs, const LPSIZE pThumbSize, bool showIcon);
 HRESULT WICCreate32BitsPerPixelHBITMAP(IStream* pstm, HBITMAP* phbmp);
+void addIcon(HBITMAP* phBmpThumbnail);
 
 HRESULT ExtractFBCover(CString filepath, HBITMAP* phBmpThumbnail);
 
@@ -388,7 +389,11 @@ try {
 		case CBXTYPE_EPUB:
 		{
 			if (ExtractEpub(m_cbxFile, phBmpThumbnail, m_thumbSize, m_showIcon) != E_FAIL)
+			{
+				if (m_showIcon)
+					addIcon(phBmpThumbnail);
 				return S_OK;
+			}
 
 			// something wrong with the epub, try falling back on first image in zip
 			logit(_T("__Epub Extract: fallback to ZIP"));
@@ -438,26 +443,22 @@ try {
 				{
 					bool b=false;
 					LPVOID pBuf=::GlobalLock(hG);
-					if (pBuf)
-					     b=_z.UnzipItemToMembuffer(thumbindex, pBuf, _z.GetItemUnpackedSize());
 
-					if (::GlobalUnlock(hG)==0 && GetLastError()==NO_ERROR)
+					long itemSize = _z.GetItemUnpackedSize();
+					if (pBuf)
+					     b=_z.UnzipItemToMembuffer(thumbindex, pBuf, itemSize);
+
+					if (::GlobalUnlock(hG)==0 && GetLastError()==NO_ERROR && b)
 					{
-						if (b)
-						{
-							IStream* pIs=NULL;
-							if (S_OK==CreateStreamOnHGlobal(hG, TRUE, (LPSTREAM*)&pIs))//autofree hG
-							{
-								*phBmpThumbnail= ThumbnailFromIStream(pIs, &m_thumbSize, m_showIcon);
-								//HRESULT hr = WICCreate32BitsPerPixelHBITMAP(pIs, phBmpThumbnail);
-								pIs->Release();
-								pIs=NULL;
-								//return hr;
-							}
-						}
+						IStream* pImageStream = SHCreateMemStream((const BYTE *)pBuf, itemSize);
+						HRESULT hr = WICCreate32BitsPerPixelHBITMAP(pImageStream, phBmpThumbnail);
+						pImageStream->Release();
 					}
 				//GlobalFree(hG);//autofreed
 				}
+
+				if (m_showIcon)
+					addIcon(phBmpThumbnail);
 
 			return ((*phBmpThumbnail) ? S_OK : E_FAIL);
 			}//dtors!
@@ -487,6 +488,7 @@ try {
 				{
 					//skip solid (long processing time), volumes or encrypted file headers
 					//if (_r.IsArchiveSolid() || _r.IsArchiveVolume() || _r.IsArchiveEncryptedHeaders()) return E_FAIL;
+					// Issue #30: allow SOLID archives
 					if (_r.IsArchiveVolume() || _r.IsArchiveEncryptedHeaders()) return E_FAIL;
 
 					while (_r.ReadItemInfo())
@@ -507,15 +509,17 @@ try {
 				//create thumb
 				IStream* pIs = NULL;
 				HGLOBAL hG = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (SIZE_T)_r.GetItemUnpackedSize64());
+				//HRESULT hr;
 				if (hG)
 				{
 					if (S_OK==CreateStreamOnHGlobal(hG, TRUE, (LPSTREAM*)&pIs))
 					{
 						_r.SetIStream(pIs);
 						if (_r.ProcessItem())
+						//if (_r.ProcessItemData((LPBYTE) hG, _r.GetItemUnpackedSize64()))
 						{
 							*phBmpThumbnail = ThumbnailFromIStream(pIs, &m_thumbSize, m_showIcon);
-							//HRESULT hr = WICCreate32BitsPerPixelHBITMAP(pIs, phBmpThumbnail);
+							//hr = WICCreate32BitsPerPixelHBITMAP(pIs, phBmpThumbnail);
 						}
 					}
 				}

@@ -19,7 +19,7 @@
 
 HBITMAP ThumbnailFromIStream(IStream* pIs, const LPSIZE pThumbSize, bool showIcon);
 BOOL IsImage(LPCTSTR szFile);
-//HRESULT WICCreate32BitsPerPixelHBITMAP(IStream* pstm, HBITMAP* phbmp);
+HRESULT WICCreate32BitsPerPixelHBITMAP(IStream* pstm, HBITMAP* phbmp);
 
 
 std::string urlDecode(std::string& SRC)
@@ -207,7 +207,7 @@ on_exit:
 
 std::string coverImageItem(char* pBuf, std::string rootpath) {
 
-	// find a <manifest> entry with id of "cover-image"
+	// find a <manifest> entry with id of "cover-image" [for Epub V3.0]
 	// the href is the path, relative to rootpath
 
 	std::string xmlContent = (char*)pBuf;
@@ -390,22 +390,15 @@ test_coverfile:
 		{
 			bool b = false;
 			LPVOID pBuf = ::GlobalLock(hG);
+			long itemSize = _z.GetItemUnpackedSize();
 			if (pBuf)
-				b = _z.UnzipItemToMembuffer(thumbindex, pBuf, _z.GetItemUnpackedSize());
+				b = _z.UnzipItemToMembuffer(thumbindex, pBuf, itemSize);
 
-			if (::GlobalUnlock(hG) == 0 && GetLastError() == NO_ERROR)
+			if (::GlobalUnlock(hG) == 0 && GetLastError() == NO_ERROR && b)
 			{
-				if (b)
-				{
-					IStream* pIs = NULL;
-					if (S_OK == CreateStreamOnHGlobal(hG, TRUE, (LPSTREAM*)&pIs))//autofree hG
-					{
-						*phBmpThumbnail = ThumbnailFromIStream(pIs, &m_thumbSize, showIcon);
-						//HRESULT hr = WICCreate32BitsPerPixelHBITMAP(pIs, phBmpThumbnail);
-						pIs->Release();
-						pIs = NULL;
-					}
-				}
+				IStream* pImageStream = SHCreateMemStream((const BYTE*)pBuf, itemSize);
+				HRESULT hr = WICCreate32BitsPerPixelHBITMAP(pImageStream, phBmpThumbnail);
+				pImageStream->Release();
 			}
 			// GlobalFree(hG); KBR: unnecessary, freed as indicated by 2d param of CreateStreamOnHGlobal above
 		}
