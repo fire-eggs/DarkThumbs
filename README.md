@@ -1,3 +1,8 @@
+Due to a family crisis, the latter half of 2022 was a complete loss for working on projects.
+
+With the New Year 2023, I hope to move forward again on this and other projects. I hope for your understanding and patience.
+
+
 The V1.6 release is now available! 
 
 Read the details and download the installer from the [releases page](https://github.com/fire-eggs/DarkThumbs/releases/tag/V1.6).
