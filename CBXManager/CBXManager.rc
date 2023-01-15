@@ -18,7 +18,7 @@ FONT 8, "MS Shell Dlg 2", 400, 0, 1
 {
     GROUPBOX        "", IDC_STATIC, 59, 36, 55, 18
     CTEXT           "OK", IDC_STATIC, 76, 42, 23, 10, SS_CENTER, WS_EX_TRANSPARENT
-    CTEXT           "DarkThumbs Manager\nVersion 1.5.1", IDC_STATIC, 10, 9, 152, 25, SS_CENTER
+    CTEXT           "DarkThumbs Manager\nVersion 1.6", IDC_STATIC, 10, 9, 152, 25, SS_CENTER
     ICON            IDR_MAINFRAME, IDC_STATIC, 13, 11, 11, 10, SS_ICON
 }
 
@@ -31,18 +31,18 @@ FONT 8, "Ms Shell Dlg"
     GROUPBOX        "File types", IDC_TH_GROUP, 10, 5, 170, 120
     GROUPBOX        "Advanced", IDC_SORT_ADVOPTGROUP, 10, 130, 170, 75
 
+    AUTOCHECKBOX    "CBR Image Archives", IDC_CB_CBR, 20, 65, 150, 10
     AUTOCHECKBOX    "CBZ Image Archives", IDC_CB_CBZ,  20, 20, 145, 10
-    AUTOCHECKBOX    "ZIP Archives",       IDC_CB_ZIP,  20, 35, 150, 8
     AUTOCHECKBOX    "EPUB Archives",      IDC_CB_EPUB, 20, 50, 150, 8
-    AUTOCHECKBOX    "CBR Image Archives", IDC_CB_CBR,  20, 65, 150, 10
+    AUTOCHECKBOX    "FB2 ebooks", IDC_CB_FB, 20, 110, 150, 8
+    AUTOCHECKBOX    "Kindle ebooks (MOBI, AZW, AZW3)", IDC_CB_MOBI, 20, 95, 250, 8
     AUTOCHECKBOX    "RAR Archives",       IDC_CB_RAR,  20, 80, 150, 8
-    AUTOCHECKBOX    "MOBI ebooks",        IDC_CB_MOBI, 20, 95, 150, 8
-    AUTOCHECKBOX    "FB2 ebooks",         IDC_CB_FB,   20, 110, 150, 8
+    AUTOCHECKBOX    "ZIP Archives", IDC_CB_ZIP, 20, 35, 150, 8
 
-    AUTOCHECKBOX    "Sort images alphabetically", IDC_CB_SORT, 20, 145, 155, 8
+    AUTOCHECKBOX    "Sort images alphabetically", IDC_CB_SORT, 20, 144, 155, 8
     LTEXT           "Uncheck to sort images by archive order.\nRequired to display custom thumbnail.", IDC_SORT_DESC, 30, 155, 145, 18, SS_LEFT, WS_EX_TRANSPARENT
 
-	AUTOCHECKBOX    "Show archive indicator", IDC_CB_SHOWICON, 20, 178, 150, 8
+	AUTOCHECKBOX    "Show archive indicator", IDC_CB_SHOWICON, 20, 176, 150, 8
 	LTEXT           "Display a ZIP icon top-left of thumbnail to let you know it's an archive.", IDC_CB_SHOWICON_DESC, 30, 185, 145, 18, SS_LEFT, WS_EX_TRANSPARENT
 
     DEFPUSHBUTTON   "OK",         IDOK,   10, 210, 50, 14
@@ -77,10 +77,10 @@ VS_VERSION_INFO VERSIONINFO
         {
             VALUE "CompanyName", "\0"
             VALUE "FileDescription", "DarkThumbs Manager\0"
-            VALUE "FileVersion", "1.5.1.0\0"
+            VALUE "FileVersion", "1.6.0.0\0"
             VALUE "LegalCopyright", "© 2020-2022 by Kevin Routley\0"
             VALUE "ProductName", "DarkThumbs\0"
-            VALUE "ProductVersion", "1.5.1.0\0"
+            VALUE "ProductVersion", "1.6.0.0\0"
         }
     }
     BLOCK "VarFileInfo"
