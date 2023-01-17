@@ -20,6 +20,10 @@
 HBITMAP ThumbnailFromIStream(IStream* pIs, const LPSIZE pThumbSize, bool showIcon);
 BOOL IsImage(LPCTSTR szFile);
 HRESULT WICCreate32BitsPerPixelHBITMAP(IStream* pstm, HBITMAP* phbmp);
+HRESULT WICCreate32BitsPerPixelHBITMAP_log(IStream* pstm, HBITMAP* phbmp);
+HRESULT GetStreamFromStringA(PCSTR pszImageName, IStream** ppImageStream, DWORD lenLimit);
+
+extern void __cdecl logit(LPCWSTR format, ...);
 
 
 std::string urlDecode(std::string& SRC)
@@ -242,6 +246,53 @@ std::string coverHTML(char* pBuf, std::string rootpath) {
 }
 
 
+
+// Attempt to handle a coverfile from Standard Ebooks
+HRESULT TryStandardEbooks(char *pBuf, long itemSize, HBITMAP *phbmp)
+{
+	// The XML file has an embedded, base64-encoded jpeg file. It looks
+	// like: "xlink:href="data:image/jpeg;base64,.../>" where ... 
+	// represents the base64-encoded characters.
+
+	// So first find the bracketing characters from within the buffer
+	// (which contains the XML in entirety). 
+	const char* find = "data:image/jpeg;base64,";
+	auto res = StrStrIA(pBuf, find);
+	if (res == NULL)
+		return NULL;
+	const char* find2 = "\"/>";
+	auto res2 = StrStrIA(res, find2);
+	if (res2 == NULL)
+		return NULL;
+
+	// the beginning of the data proper is from the search results plus
+	// the length of the start string. the length of the base64 characters
+	// comes from the start of the end-bracket-string.
+	auto base64 = res + 23;
+	DWORD lenLimit = (DWORD)(res2 - base64);
+
+	// We'll now get a binary stream from the decoded base64 characters.
+	IStream* pImageStream0 = NULL;
+	HRESULT hr = GetStreamFromStringA(base64, &pImageStream0, lenLimit);
+	if (SUCCEEDED(hr))
+	{
+		// and decode the binary stream as an image
+		hr = WICCreate32BitsPerPixelHBITMAP(pImageStream0, phbmp);
+		pImageStream0->Release();
+	}
+
+	// TODO the second part is to take the SVG file, render it into a bitmap,
+	// and merge the two bitmaps.
+
+	return hr;
+}
+
+inline bool ends_with(std::string const& value, std::string const& ending)
+{
+	if (ending.size() > value.size()) return false;
+	return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+}
+
 HRESULT ExtractEpub(CString m_cbxFile, HBITMAP* phBmpThumbnail, SIZE m_thumbSize, BOOL showIcon)
 {
 	HGLOBAL hGContainer = NULL;
@@ -260,19 +311,20 @@ HRESULT ExtractEpub(CString m_cbxFile, HBITMAP* phBmpThumbnail, SIZE m_thumbSize
 	USES_CONVERSION;
 
 	if (rootfile.length() <= 0)
-		goto test_coverfile;
+		goto test_coverfile; // No root file path found
 
 	posStart = rootfile.rfind('/');
 	if (posStart != std::string::npos) {
 		rootpath = rootfile.substr(0, posStart + 1);
 	}
 
+	// Get the root file itself
 	int dex = -1;
 	ZIPENTRY ze;
 	memset(&ze, 0, sizeof(ZIPENTRY));
 	FindZipItem(_z.getHZIP(), A2T(rootfile.c_str()), false, &dex, &ze);
 	if (dex < 0)
-		goto test_coverfile;
+		goto test_coverfile; // Root file not found
 
 	_z.GetItem(dex);
 	int i = dex;
@@ -285,6 +337,7 @@ HRESULT ExtractEpub(CString m_cbxFile, HBITMAP* phBmpThumbnail, SIZE m_thumbSize
 		if (pBuf)
 			b = _z.UnzipItemToMembuffer(i, pBuf, _z.GetItemUnpackedSize());
 
+		// If successful, pBuf now contains the contents of the root file.
 		if (::GlobalUnlock(hGContainer) == 0 && GetLastError() == NO_ERROR && b)
 		{
 			// Find meta tag for cover
@@ -350,7 +403,7 @@ HRESULT ExtractEpub(CString m_cbxFile, HBITMAP* phBmpThumbnail, SIZE m_thumbSize
 	}
 
 test_coverfile:
-	if (hGContainer) GlobalFree(hGContainer);
+	if (hGContainer) GlobalFree(hGContainer); // done with the rootfile
 
 	if (coverfile.empty()) {
 
@@ -374,15 +427,15 @@ test_coverfile:
 		}
 	}
 
-	if (!coverfile.empty()) {
+	if (!coverfile.empty()) {  // testing "again" because brute-force search might have found something
 
 		int thumbindex;
 		ZIPENTRY ze;
 		ZRESULT res = FindZipItem(_z.getHZIP(), A2T(coverfile.c_str()), true, &thumbindex, &ze);
 
-		if (thumbindex < 0) return E_FAIL;
+		if (thumbindex < 0) return E_FAIL;  // couldn't find coverfile by path
 		//go to thumb index
-		if (!_z.GetItem(thumbindex)) return E_FAIL;
+		if (!_z.GetItem(thumbindex)) return E_FAIL; // can't unpack coverfile
 
 		//create thumb			//GHND
 		HGLOBAL hG = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (SIZE_T)_z.GetItemUnpackedSize());
@@ -394,13 +447,25 @@ test_coverfile:
 			if (pBuf)
 				b = _z.UnzipItemToMembuffer(thumbindex, pBuf, itemSize);
 
+			// at this point pBuf has a copy of the coverfile bytes
 			if (::GlobalUnlock(hG) == 0 && GetLastError() == NO_ERROR && b)
 			{
+				// Issue #34. Epub3 ebooks produced by "Standard Ebooks" (standardebooks.org) use a SVG file
+				// as their cover image. These SVG files have two major parts: 1) a base64-encoded JPEG file,
+				// and 2) rendering of text and author information on top of the JPEG.
+				//
+				// At this time, WIC doesn't support SVG files. Must try to handle ourselves.
+				//
+				if (ends_with(coverfile, ".svg"))
+				{
+					HRESULT hr = TryStandardEbooks((char *)pBuf, itemSize, phBmpThumbnail);
+					return hr;
+				}
 				IStream* pImageStream = SHCreateMemStream((const BYTE*)pBuf, itemSize);
 				HRESULT hr = WICCreate32BitsPerPixelHBITMAP(pImageStream, phBmpThumbnail);
 				pImageStream->Release();
 			}
-			// GlobalFree(hG); KBR: unnecessary, freed as indicated by 2d param of CreateStreamOnHGlobal above
+			GlobalFree(hG);
 		}
 		return ((*phBmpThumbnail) ? S_OK : E_FAIL);
 	}

@@ -157,6 +157,48 @@ HRESULT GetStreamFromString(PCWSTR pszImageName, IStream** ppImageStream)
 	return hr;
 }
 
+
+extern void __cdecl logit(LPCWSTR format, ...);
+
+// Decodes the base64-encoded string to a stream.
+// This version takes ASCII input and a length limit [see epub.cpp, "Standard Ebook" handling]
+HRESULT GetStreamFromStringA(PCSTR pszImageName, IStream** ppImageStream, DWORD lenLimit)
+{
+	HRESULT hr = E_FAIL;
+
+	DWORD dwDecodedImageSize = lenLimit;
+	DWORD dwSkipChars = 0;
+	DWORD dwActualFormat = 0;
+
+	// Base64-decode the string
+	BOOL fSuccess = CryptStringToBinaryA(pszImageName, NULL, CRYPT_STRING_BASE64,
+		NULL, &dwDecodedImageSize, &dwSkipChars, &dwActualFormat);
+	if (fSuccess)
+	{
+		HGLOBAL hGCont = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, dwDecodedImageSize);
+		if (!hGCont)
+			return hr;
+		LPVOID pbuf = GlobalLock(hGCont);
+
+		if (pbuf)
+		{
+			fSuccess = CryptStringToBinaryA(pszImageName, lstrlenA(pszImageName), CRYPT_STRING_BASE64,
+				(BYTE *)pbuf, &dwDecodedImageSize, &dwSkipChars, &dwActualFormat);
+			if (fSuccess)
+			{
+				*ppImageStream = SHCreateMemStream((BYTE *)pbuf, dwDecodedImageSize);
+				if (*ppImageStream != NULL)
+				{
+					hr = S_OK;
+				}
+			}
+			GlobalUnlock(hGCont);
+			GlobalFree(hGCont);
+		}
+	}
+	return hr;
+}
+
 HRESULT ConvertBitmapSourceTo32BPPHBITMAP(IWICBitmapSource* pBitmapSource,
 	IWICImagingFactory* pImagingFactory,
 	HBITMAP* phbmp)
@@ -225,6 +267,42 @@ HRESULT ConvertBitmapSourceTo32BPPHBITMAP(IWICBitmapSource* pBitmapSource,
 	}
 	return hr;
 }
+
+// For debugging purposes
+#if 0
+HRESULT WICCreate32BitsPerPixelHBITMAP_log(IStream* pstm, HBITMAP* phbmp)
+{
+	logit(L"WC32BPPH 0");
+
+	*phbmp = NULL;
+
+	IWICImagingFactory* pImagingFactory;
+	HRESULT hr = CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pImagingFactory));
+	if (SUCCEEDED(hr))
+	{
+		logit(L"WC32BPPH 1");
+
+		IWICBitmapDecoder* pDecoder;
+		hr = pImagingFactory->CreateDecoderFromStream(pstm, &GUID_VendorMicrosoft, WICDecodeMetadataCacheOnDemand, &pDecoder);
+		if (SUCCEEDED(hr))
+		{
+			logit(L"WC32BPPH 2");
+			IWICBitmapFrameDecode* pBitmapFrameDecode;
+			hr = pDecoder->GetFrame(0, &pBitmapFrameDecode);
+			if (SUCCEEDED(hr))
+			{
+				logit(L"WC32BPPH 3");
+				hr = ConvertBitmapSourceTo32BPPHBITMAP(pBitmapFrameDecode, pImagingFactory, phbmp);
+				pBitmapFrameDecode->Release();
+			}
+			pDecoder->Release();
+		}
+		pImagingFactory->Release();
+	}
+	logit(L"WC32BPPH 4");
+	return hr;
+}
+#endif
 
 HRESULT WICCreate32BitsPerPixelHBITMAP(IStream* pstm, HBITMAP* phbmp)
 {
