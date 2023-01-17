@@ -20,3 +20,4 @@
 #define IDC_CB_SORT                             57683
 #define IDC_CB_CBR                              57684
 #define IDC_CB_FB                               57685
+#define IDC_VERSION_DESC                        57686

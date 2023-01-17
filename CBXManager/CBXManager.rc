@@ -28,16 +28,19 @@ STYLE DS_SETFONT | WS_BORDER | WS_CAPTION | WS_DLGFRAME | WS_SYSMENU
 CAPTION "DarkThumbs Manager"
 FONT 8, "Ms Shell Dlg"
 {
-    GROUPBOX        "File types", IDC_TH_GROUP, 10, 5, 170, 120
-    GROUPBOX        "Advanced", IDC_SORT_ADVOPTGROUP, 10, 130, 170, 75
+    LTEXT           "DarkThumbs V1.7 - January 16, 2023", IDC_VERSION_DESC, 30, 5, 145, 10, SS_LEFT, WS_EX_TRANSPARENT
 
-    AUTOCHECKBOX    "CBR Image Archives", IDC_CB_CBR, 20, 65, 150, 10
-    AUTOCHECKBOX    "CBZ Image Archives", IDC_CB_CBZ,  20, 20, 145, 10
-    AUTOCHECKBOX    "EPUB Archives",      IDC_CB_EPUB, 20, 50, 150, 8
-    AUTOCHECKBOX    "FB2 ebooks", IDC_CB_FB, 20, 110, 150, 8
-    AUTOCHECKBOX    "Kindle ebooks (MOBI, AZW, AZW3)", IDC_CB_MOBI, 20, 95, 250, 8
-    AUTOCHECKBOX    "RAR Archives",       IDC_CB_RAR,  20, 80, 150, 8
-    AUTOCHECKBOX    "ZIP Archives", IDC_CB_ZIP, 20, 35, 150, 8
+    GROUPBOX        "File types", IDC_TH_GROUP,       10, 15, 170, 120
+
+    AUTOCHECKBOX    "CBR Image Archives", IDC_CB_CBR,  20, 28, 150, 10
+    AUTOCHECKBOX    "CBZ Image Archives", IDC_CB_CBZ,  20, 43, 145, 10
+    AUTOCHECKBOX    "EPUB Archives",      IDC_CB_EPUB, 20, 58, 150, 10
+    AUTOCHECKBOX    "FB2 ebooks",         IDC_CB_FB,   20, 73, 150, 10
+    AUTOCHECKBOX    "Kindle ebooks (MOBI, AZW, AZW3)", IDC_CB_MOBI, 20, 88, 150, 10
+    AUTOCHECKBOX    "RAR Archives",       IDC_CB_RAR,  20, 103, 150, 10
+    AUTOCHECKBOX    "ZIP Archives", IDC_CB_ZIP,        20, 118, 150, 10
+
+    GROUPBOX        "Advanced", IDC_SORT_ADVOPTGROUP,  10, 135, 170, 75
 
     AUTOCHECKBOX    "Sort images alphabetically", IDC_CB_SORT, 20, 144, 155, 8
     LTEXT           "Uncheck to sort images by archive order.\nRequired to display custom thumbnail.", IDC_SORT_DESC, 30, 155, 145, 18, SS_LEFT, WS_EX_TRANSPARENT
