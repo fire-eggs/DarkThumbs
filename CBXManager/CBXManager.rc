@@ -18,7 +18,7 @@ FONT 8, "MS Shell Dlg 2", 400, 0, 1
 {
     GROUPBOX        "", IDC_STATIC, 59, 36, 55, 18
     CTEXT           "OK", IDC_STATIC, 76, 42, 23, 10, SS_CENTER, WS_EX_TRANSPARENT
-    CTEXT           "DarkThumbs Manager\nVersion 1.6", IDC_STATIC, 10, 9, 152, 25, SS_CENTER
+    CTEXT           "DarkThumbs Manager\nVersion 1.7", IDC_STATIC, 10, 9, 152, 25, SS_CENTER
     ICON            IDR_MAINFRAME, IDC_STATIC, 13, 11, 11, 10, SS_ICON
 }
 
@@ -28,25 +28,24 @@ STYLE DS_SETFONT | WS_BORDER | WS_CAPTION | WS_DLGFRAME | WS_SYSMENU
 CAPTION "DarkThumbs Manager"
 FONT 8, "Ms Shell Dlg"
 {
-    LTEXT           "DarkThumbs V1.7 - January 16, 2023", IDC_VERSION_DESC, 30, 5, 145, 10, SS_LEFT, WS_EX_TRANSPARENT
+    LTEXT           "DarkThumbs V1.7 - January 2023", IDC_VERSION_DESC, 30, 4, 145, 10, SS_LEFT, WS_EX_TRANSPARENT
 
     GROUPBOX        "File types", IDC_TH_GROUP,       10, 15, 170, 120
 
     AUTOCHECKBOX    "CBR Image Archives", IDC_CB_CBR,  20, 28, 150, 10
     AUTOCHECKBOX    "CBZ Image Archives", IDC_CB_CBZ,  20, 43, 145, 10
-    AUTOCHECKBOX    "EPUB Archives",      IDC_CB_EPUB, 20, 58, 150, 10
+    AUTOCHECKBOX    "EPUB ebooks",      IDC_CB_EPUB, 20, 58, 150, 10
     AUTOCHECKBOX    "FB2 ebooks",         IDC_CB_FB,   20, 73, 150, 10
     AUTOCHECKBOX    "Kindle ebooks (MOBI, AZW, AZW3)", IDC_CB_MOBI, 20, 88, 150, 10
     AUTOCHECKBOX    "RAR Archives",       IDC_CB_RAR,  20, 103, 150, 10
     AUTOCHECKBOX    "ZIP Archives", IDC_CB_ZIP,        20, 118, 150, 10
 
-    GROUPBOX        "Advanced", IDC_SORT_ADVOPTGROUP,  10, 135, 170, 75
+    GROUPBOX        "Advanced", IDC_SORT_ADVOPTGROUP,  10, 135, 170, 70
 
-    AUTOCHECKBOX    "Sort images alphabetically", IDC_CB_SORT, 20, 144, 155, 8
-    LTEXT           "Uncheck to sort images by archive order.\nRequired to display custom thumbnail.", IDC_SORT_DESC, 30, 155, 145, 18, SS_LEFT, WS_EX_TRANSPARENT
-
-	AUTOCHECKBOX    "Show archive indicator", IDC_CB_SHOWICON, 20, 176, 150, 8
-	LTEXT           "Display a ZIP icon top-left of thumbnail to let you know it's an archive.", IDC_CB_SHOWICON_DESC, 30, 185, 145, 18, SS_LEFT, WS_EX_TRANSPARENT
+    AUTOCHECKBOX    "Skip Scanslation files",     IDC_CB_SKIP, 20, 147, 155, 8
+    AUTOCHECKBOX    "Sort images alphabetically", IDC_CB_SORT, 20, 160, 155, 8
+    AUTOCHECKBOX    "Prefer 'cover' file",        IDC_CB_COVER, 30, 173, 140, 8
+	AUTOCHECKBOX    "Show archive indicator",     IDC_CB_SHOWICON, 20, 185, 150, 8
 
     DEFPUSHBUTTON   "OK",         IDOK,   10, 210, 50, 14
     PUSHBUTTON      "Cancel", IDCANCEL,   70, 210, 50, 14
@@ -66,8 +65,8 @@ IDR_MAINFRAME      ICON           "DarkThumbsIcon.ico"
 // Version Information resources
 //
 VS_VERSION_INFO VERSIONINFO
-    FILEVERSION     1,5,1,0
-    PRODUCTVERSION  1,5,1,0
+    FILEVERSION     1,7,0,0
+    PRODUCTVERSION  1,7,0,0
     FILEOS          VOS__WINDOWS32
     FILETYPE        VFT_APP
     FILESUBTYPE     VFT2_UNKNOWN
@@ -80,10 +79,10 @@ VS_VERSION_INFO VERSIONINFO
         {
             VALUE "CompanyName", "\0"
             VALUE "FileDescription", "DarkThumbs Manager\0"
-            VALUE "FileVersion", "1.6.0.0\0"
-            VALUE "LegalCopyright", "© 2020-2022 by Kevin Routley\0"
+            VALUE "FileVersion", "1.7.0.0\0"
+            VALUE "LegalCopyright", "© 2020-2023 by Kevin Routley\0"
             VALUE "ProductName", "DarkThumbs\0"
-            VALUE "ProductVersion", "1.6.0.0\0"
+            VALUE "ProductVersion", "1.7.0.0\0"
         }
     }
     BLOCK "VarFileInfo"

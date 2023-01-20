@@ -94,11 +94,19 @@ void CMainDlg::InitUI()
 	Button_SetCheck(GetDlgItem(IDC_CB_RAR),  m_reg.HasTH(CBX_RAR));
 	Button_SetCheck(GetDlgItem(IDC_CB_CBR),  m_reg.HasTH(CBX_CBR));
 	Button_SetCheck(GetDlgItem(IDC_CB_MOBI), m_reg.HasTH(CBX_MOBI));
-	Button_SetCheck(GetDlgItem(IDC_CB_FB), m_reg.HasTH(CBX_FB2));
+	Button_SetCheck(GetDlgItem(IDC_CB_FB),   m_reg.HasTH(CBX_FB2));
+
 	Button_SetCheck(GetDlgItem(IDC_CB_SHOWICON), m_reg.IsShowIconOpt());//CBX_SHOWICON
 	Button_SetCheck(GetDlgItem(IDC_CB_SORT), m_reg.IsSortOpt());//CBX_SORT
+	Button_SetCheck(GetDlgItem(IDC_CB_SKIP), m_reg.IsSkipOpt()); // V1.7 skip scanlation files
+	Button_SetCheck(GetDlgItem(IDC_CB_COVER), m_reg.IsCoverOpt()); // V1.7 prefer cover file
 
-	CreateToolTip(IDC_CB_ZIP, L"ZIP files");
+	// TODO these should come from the resource file
+	// V1.7 Tooltips 
+	CreateToolTip(IDC_CB_SHOWICON, L"Display a ZIP icon top-left of thumbnail to let you know it's an archive.");
+	CreateToolTip(IDC_CB_SKIP,  L"Ignore common 'scanlation' files: 'credit', 'recruit', etc.");
+	CreateToolTip(IDC_CB_COVER, L"Prefer an image file with 'cover' in the name. Takes effect only if sorting is ON.");
+	CreateToolTip(IDC_CB_SORT,  L"If OFF, uses the first image in the archive. If ON, uses the first alphabetical image.");
 }
 
 //check ui state,compare to registry state->if!= refresh
@@ -119,6 +127,20 @@ void CMainDlg::OnApplyImpl()
 	{
 		bRefresh = TRUE;
 		m_reg.SetShowIconOpt(bRet);
+	}
+	// V1.7 skip scanlation files
+	bRet = (BST_CHECKED == Button_GetCheck(GetDlgItem(IDC_CB_SKIP)));
+	if (bRet != m_reg.IsSkipOpt())
+	{
+		bRefresh = TRUE;
+		m_reg.SetSkipOpt(bRet);
+	}
+	// V1.7 prefer 'cover'
+	bRet = (BST_CHECKED == Button_GetCheck(GetDlgItem(IDC_CB_COVER)));
+	if (bRet != m_reg.IsCoverOpt())
+	{
+		bRefresh = TRUE;
+		m_reg.SetCoverOpt(bRet);
 	}
 	//thumbnail handlers
 	bRet=(BST_CHECKED==Button_GetCheck(GetDlgItem(IDC_CB_ZIP)));

@@ -48,6 +48,10 @@
 #define CBX_FB2  9
 //#define CBX_SORT 5
 
+#define SORT_KEY L"NoSort"
+#define SKIP_KEY L"SkipScanlation"
+#define COVER_KEY L"PreferCover"
+#define ICON_KEY L"ShowIcon"
 
 class CRegManager
 {
@@ -56,48 +60,44 @@ public:
 	//virtual ~CRegManager(void){}
 public:
 
-	///////////////
-	// sort option
-	BOOL IsSortOpt()
-	{
-		DWORD d;
-		CRegKey rk;
-		if (ERROR_SUCCESS==rk.Open(HKEY_CURRENT_USER, CBX_APP_KEY, KEY_READ))
-		{
-			if (ERROR_SUCCESS==rk.QueryDWORDValue(_T("NoSort"), d))
-				return (d==FALSE);
-		}
-	return FALSE;
-	}
-
-	void SetSortOpt(BOOL bSort)
-	{
-		CRegKey rk;
-		if (ERROR_SUCCESS==rk.Create(HKEY_CURRENT_USER, CBX_APP_KEY, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE))
-			rk.SetDWORDValue(_T("NoSort"), (DWORD)(bSort ? FALSE : TRUE));
-	}
-
-	// sort option
-	BOOL IsShowIconOpt()
+	BOOL IsOption(const wchar_t* optionKey)
 	{
 		DWORD d;
 		CRegKey rk;
 		if (ERROR_SUCCESS == rk.Open(HKEY_CURRENT_USER, CBX_APP_KEY, KEY_READ))
 		{
-			if (ERROR_SUCCESS == rk.QueryDWORDValue(_T("ShowIcon"), d))
-				return (d == TRUE);
+			if (ERROR_SUCCESS == rk.QueryDWORDValue(optionKey, d))
+				return (d == 1);
 		}
 		return FALSE;
 	}
 
-	//////////////
-	// set show archive Icon
-	void SetShowIconOpt(BOOL bShowIcon)
+	void SetOption(const wchar_t* optionKey, BOOL val)
 	{
 		CRegKey rk;
 		if (ERROR_SUCCESS == rk.Create(HKEY_CURRENT_USER, CBX_APP_KEY, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE))
-			rk.SetDWORDValue(_T("ShowIcon"), (DWORD)(bShowIcon ? TRUE : FALSE));
+			rk.SetDWORDValue(optionKey, (DWORD)(val ? TRUE : FALSE));
 	}
+
+	///////////////
+	// sort option. The registry key is "backward", as it records the "NoSort" state.
+	BOOL IsSortOpt() { return !IsOption(SORT_KEY); }
+	void SetSortOpt(BOOL bSort) { SetOption(SORT_KEY, !bSort); }
+
+	//////////////
+	// show archive Icon
+	BOOL IsShowIconOpt() { return IsOption(ICON_KEY); }
+	void SetShowIconOpt(BOOL bShowIcon) { SetOption(ICON_KEY, bShowIcon); }
+
+	///////////////
+	// V1.7 skip option
+	BOOL IsSkipOpt() { return IsOption(SKIP_KEY); }
+	void SetSkipOpt(BOOL val) { SetOption(SKIP_KEY, val); }
+
+	///////////////
+	// V1.7 cover option
+	BOOL IsCoverOpt() { return IsOption(COVER_KEY); }
+	void SetCoverOpt(BOOL val) { SetOption(COVER_KEY, val); }
 
 	///////////////////////////////
 	// check for thumbnail handlers
