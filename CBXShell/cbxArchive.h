@@ -88,6 +88,7 @@ class CUnRar
 public:
 	CUnRar() { if (RAR_DLL_VERSION>RARGetDllVersion()) throw RAR_DLL_VERSION;	_init(); }
 	virtual ~CUnRar(){Close();_init();}
+	void Shutdown() { Close(); _init(); }
 
 public:
 	BOOL Open(LPCTSTR rarfile, BOOL bListingOnly=TRUE, char* cmtBuf=NULL, UINT cmtBufSize=0, char* password=NULL)
@@ -226,6 +227,9 @@ public:
 		m_thumbSize.cx=m_thumbSize.cy=0;
 		m_cbxType=CBXTYPE_NONE;
 		m_pIs=NULL;
+
+		m_bSkip = FALSE;  // V1.7 : new setting, don't change existing behavior
+		m_bCover = FALSE; // V1.7
 	}
 
 	virtual ~CCBXArchive()
@@ -319,6 +323,221 @@ public:
 	}
 #endif
 
+	HRESULT ExtractZip(HBITMAP* phBmpThumbnail)
+	{
+		CUnzip _z;
+		if (!_z.Open(m_cbxFile)) 
+			return E_FAIL;
+		int j = _z.GetItemCount();
+		if (j == 0) 
+			return E_FAIL;
+
+		CString prevname;
+		int foundIndex = -1;
+
+		for (int i = 0; i < j; i++)
+		{
+			// Skip empty items, directories, etc.
+			if (!_z.GetItem(i)) break;
+			if (_z.ItemIsDirectory() || (_z.GetItemUnpackedSize() > CBXMEM_MAXBUFFER_SIZE)) continue;
+			if ((_z.GetItemPackedSize() == 0) || (_z.GetItemUnpackedSize() == 0)) continue;
+
+			CString iName = _z.GetItemName();
+
+			// Skip non-images and other undesirables
+			if (iName.Find(L"__MACOSX") != -1) continue;
+			if (!IsImage(iName)) continue;
+
+			// Skipping scanlation files takes precedence
+			auto allLower = iName.MakeLower();
+			if (m_bSkip)
+			{
+				// TODO could these come from a registry setting?
+				// TODO manga like "Death Note" which might fail all images?
+				if (allLower.Find(L"credit") != -1 ||
+					allLower.Find(L"note") != -1 ||
+					allLower.Find(L"recruit") != -1 ||
+					allLower.Find(L"invite") != -1 ||
+					allLower.Find(L"logo") != -1)
+				{
+					continue;
+				}
+			}
+
+			// Not a skipped image
+			if (!m_bSort)
+			{
+				foundIndex = i; // Not sorting: take the first non-skipped image file
+				break;
+			}
+			if (m_bCover && allLower.Find(L"cover") != -1)
+			{
+				foundIndex = i; // Seeking cover file: take the first "cover"
+				break;
+			}
+
+			// During sorting, force certain characters to sort later.
+			allLower.Replace(L"[", L"z");
+
+			// So we're sorting. Want to take the first file in alphabetic order
+			if (prevname.IsEmpty())
+			{
+				prevname = allLower;// can't compare empty string
+				foundIndex = i;  // initialize when sorting
+			}
+			else if (-1 == StrCmpLogicalW(allLower, prevname))
+			{
+				foundIndex = i;
+				prevname = iName;
+			}
+
+		}//for loop
+
+		if (foundIndex < 0) 
+			return E_FAIL;
+
+		//go to thumb index
+		if (!_z.GetItem(foundIndex)) 
+			return E_FAIL;
+
+		//create thumb			//GHND
+		HGLOBAL hG = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (SIZE_T)_z.GetItemUnpackedSize());
+		if (hG)
+		{
+			bool b = false;
+			LPVOID pBuf = ::GlobalLock(hG);
+
+			long itemSize = _z.GetItemUnpackedSize();
+			if (pBuf)
+				b = _z.UnzipItemToMembuffer(foundIndex, pBuf, itemSize);
+
+			if (::GlobalUnlock(hG) == 0 && GetLastError() == NO_ERROR && b)
+			{
+				IStream* pImageStream = SHCreateMemStream((const BYTE*)pBuf, itemSize);
+				HRESULT hr = WICCreate32BitsPerPixelHBITMAP(pImageStream, phBmpThumbnail);
+				pImageStream->Release();
+			}
+			GlobalFree(hG);
+		}
+
+		if (m_showIcon)
+			addIcon(phBmpThumbnail);
+
+		return ((*phBmpThumbnail) ? S_OK : E_FAIL);
+	}
+
+	HRESULT ExtractRar(HBITMAP* phBmpThumbnail)
+	{
+		CUnRar _r;
+
+		if (!_r.Open(m_cbxFile, FALSE))
+			return E_FAIL;
+
+		// Skip volumes or encrypted
+		if (_r.IsArchiveVolume() || _r.IsArchiveEncryptedHeaders()) 
+			return E_FAIL;
+
+		CString prevname; // sorting
+		int foundIndex = -1;
+		int i = -1;
+
+		while (_r.ReadItemInfo())
+		{
+			i++;
+			//skip directory/empty/ file bigger than 32mb
+			if (_r.IsItemDirectory() || (_r.GetItemPackedSize64() == 0) ||
+				(_r.GetItemUnpackedSize64() == 0) || (_r.GetItemUnpackedSize64() > CBXMEM_MAXBUFFER_SIZE))
+			{
+				_r.SkipItem();
+				continue;
+			}
+
+			CString iName = _r.GetItemName();
+
+			// Skip non-image
+			if (!IsImage(iName))
+			{
+				_r.SkipItem();
+				continue;
+			}
+
+			// Skipping scanlation files takes precedence
+			auto allLower = iName.MakeLower();
+			if (m_bSkip)
+			{
+				// TODO refactor to subroutine
+				if (allLower.Find(L"credit") != -1 ||
+					allLower.Find(L"note") != -1 ||
+					allLower.Find(L"recruit") != -1 ||
+					allLower.Find(L"invite") != -1 ||
+					allLower.Find(L"logo") != -1)
+				{
+					_r.SkipItem();
+					continue;
+				}
+			}
+
+			// For the next two tests, if they pass, the CUnrar instance is
+			// "set" to the item of interest. When sorting, it may be required
+			// to "rewind" the CUnrar instance to the item desired.
+			if (!m_bSort)
+			{
+				goto AtThumb;
+			}
+			if (m_bCover && allLower.Find(L"cover") != -1)
+			{
+				goto AtThumb; // Seeking cover file: take the first "cover"
+			}
+
+			// We're sorting. Want to take the first file in natural order.
+			if (prevname.IsEmpty())
+			{
+				prevname = iName;// can't compare empty string
+				foundIndex = i;  // initialize when sorting
+			}
+			else if (-1 == StrCmpLogicalW(iName, prevname))
+			{
+				foundIndex = i;
+				prevname = iName;
+			}
+			_r.SkipItem();
+
+		}
+
+		if (foundIndex < 0) return E_FAIL;
+
+		// Need to reposition the archive to the item of interest
+		// TODO why can't RAR be reset w/o closing and re-opening?
+		_r.Shutdown();
+		if (!_r.Open(m_cbxFile, FALSE)) return E_FAIL;
+		if (!_r.SkipItems(foundIndex)) return E_FAIL;
+		if (!_r.ReadItemInfo()) return E_FAIL;
+
+AtThumb:
+		// _r is currently 'positioned' at the item desired
+
+		//create thumb
+		IStream* pIs = NULL;
+		HGLOBAL hG = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (SIZE_T)_r.GetItemUnpackedSize64());
+		//HRESULT hr;
+		if (hG)
+		{
+			if (S_OK == CreateStreamOnHGlobal(hG, TRUE, (LPSTREAM*)&pIs))
+			{
+				_r.SetIStream(pIs);
+				if (_r.ProcessItem())
+					//if (_r.ProcessItemData((LPBYTE) hG, _r.GetItemUnpackedSize64()))
+				{
+					*phBmpThumbnail = ThumbnailFromIStream(pIs, &m_thumbSize, m_showIcon);
+					//hr = WICCreate32BitsPerPixelHBITMAP(pIs, phBmpThumbnail);
+				}
+			}
+		}
+		GlobalFree(hG);
+		pIs->Release();
+		return ((*phBmpThumbnail) ? S_OK : E_FAIL);
+	}
+
 public:
 	////////////////////////////////////////
 	// IPersistFile::Load
@@ -397,136 +616,18 @@ try {
 
 			// something wrong with the epub, try falling back on first image in zip
 			logit(_T("__Epub Extract: fallback to ZIP"));
+			// NOTE: fallthrough down to Zip!
 		}
+
 		case CBXTYPE_ZIP:
 		case CBXTYPE_CBZ:
-			{
-				CUnzip _z;
-				if (!_z.Open(m_cbxFile)) return E_FAIL;
-				j=_z.GetItemCount();
-				if (j==0) return E_FAIL;
-
-				CString prevname;//helper vars
-				int thumbindex=-1;
-
-				for (i=0; i<j; i++)
-				{
-					if (!_z.GetItem(i)) break;
-					if (_z.ItemIsDirectory() || (_z.GetItemUnpackedSize() > CBXMEM_MAXBUFFER_SIZE)) continue;
-					if ((_z.GetItemPackedSize()==0) || (_z.GetItemUnpackedSize()==0)) continue;
-
-					CString iName = _z.GetItemName();
-					if (iName.Find(L"__MACOSX") == -1 && IsImage(iName)) // Issue #36: ignore Mac resource folder
-					{
-						if (thumbindex<0) thumbindex=i;// assign thumbindex if already sorted
-
-						if (!m_bSort) break;//if NoSort
-						
-						if (prevname.IsEmpty()) 
-							prevname=iName;//can't compare empty string
-						//take only first alphabetical name
-						if (-1==StrCmpLogicalW(iName, prevname))
-						{
-							thumbindex=i;
-							prevname=_z.GetItemName();
-						}
-					}
-				}//for loop
-
-				if (thumbindex<0) return E_FAIL;
-				//go to thumb index
-				if (!_z.GetItem(thumbindex)) return E_FAIL;
-
-				//create thumb			//GHND
-				HGLOBAL hG = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (SIZE_T)_z.GetItemUnpackedSize());
-				if (hG)
-				{
-					bool b=false;
-					LPVOID pBuf=::GlobalLock(hG);
-
-					long itemSize = _z.GetItemUnpackedSize();
-					if (pBuf)
-					     b=_z.UnzipItemToMembuffer(thumbindex, pBuf, itemSize);
-
-					if (::GlobalUnlock(hG)==0 && GetLastError()==NO_ERROR && b)
-					{
-						IStream* pImageStream = SHCreateMemStream((const BYTE *)pBuf, itemSize);
-						HRESULT hr = WICCreate32BitsPerPixelHBITMAP(pImageStream, phBmpThumbnail);
-						pImageStream->Release();
-					}
-				//GlobalFree(hG);//autofreed
-				}
-
-				if (m_showIcon)
-					addIcon(phBmpThumbnail);
-
-			return ((*phBmpThumbnail) ? S_OK : E_FAIL);
-			}//dtors!
+			// NOTE: fallthrough from epub!
+			return ExtractZip(phBmpThumbnail);
 		break;
 
 		case CBXTYPE_RAR:
 		case CBXTYPE_CBR:
-			{
-				CUnRar _r;
-				__int64 thumbindex=-1;
-
-				if (m_bSort)
-				{
-					thumbindex=FindThumbnailSortRAR(m_cbxFile);
-					if (thumbindex<0) return E_FAIL;
-				}
-
-				if (!_r.Open(m_cbxFile, FALSE)) return E_FAIL;
-
-				if (m_bSort)
-	  		    {
-			       	//archive flags already checked, go to thumbindex
-					if (!_r.SkipItems(thumbindex)) return E_FAIL;
-					if (!_r.ReadItemInfo()) return E_FAIL;
-				}
-				else 
-				{
-					//skip solid (long processing time), volumes or encrypted file headers
-					//if (_r.IsArchiveSolid() || _r.IsArchiveVolume() || _r.IsArchiveEncryptedHeaders()) return E_FAIL;
-					// Issue #30: allow SOLID archives
-					if (_r.IsArchiveVolume() || _r.IsArchiveEncryptedHeaders()) return E_FAIL;
-
-					while (_r.ReadItemInfo())
-					{
-						//skip directory/empty/ file bigger than 32mb
-						if (!(_r.IsItemDirectory() || (_r.GetItemPackedSize64()==0) || 
-							(_r.GetItemUnpackedSize64()==0) || (_r.GetItemUnpackedSize64() > CBXMEM_MAXBUFFER_SIZE)))
-						{
-							if (IsImage(_r.GetItemName())) {thumbindex=TRUE; break;}
-						}
-
-						_r.SkipItem();//don't forget
-					}
-				}//else
-
-				if (thumbindex<0) return E_FAIL;
-
-				//create thumb
-				IStream* pIs = NULL;
-				HGLOBAL hG = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (SIZE_T)_r.GetItemUnpackedSize64());
-				//HRESULT hr;
-				if (hG)
-				{
-					if (S_OK==CreateStreamOnHGlobal(hG, TRUE, (LPSTREAM*)&pIs))
-					{
-						_r.SetIStream(pIs);
-						if (_r.ProcessItem())
-						//if (_r.ProcessItemData((LPBYTE) hG, _r.GetItemUnpackedSize64()))
-						{
-							*phBmpThumbnail = ThumbnailFromIStream(pIs, &m_thumbSize, m_showIcon);
-							//hr = WICCreate32BitsPerPixelHBITMAP(pIs, phBmpThumbnail);
-						}
-					}
-				}
-				GlobalFree(hG);
-				pIs->Release();
-			return ((*phBmpThumbnail) ? S_OK : E_FAIL );
-			}//dtors!
+			return ExtractRar(phBmpThumbnail);
 		break;
 
 		case CBXTYPE_FB:
@@ -559,6 +660,7 @@ try
 		if (!GetFileSizeCrt(m_cbxFile, _fs)) return E_FAIL;
 
 		TCHAR _tf[16];// SecureZeroMemory?
+		int i, j;
 
 		switch (m_cbxType)
 		{
@@ -638,11 +740,12 @@ catch (...)
 private:
 	CStringW m_cbxFile;//overcome MAX_PATH limit?
 	SIZE m_thumbSize;
-	int i,j;//helpers
 	CBXTYPE m_cbxType;
 	IStream* m_pIs;
 	BOOL m_bSort;
 	BOOL m_showIcon;
+	BOOL m_bSkip;  // V1.7 : skip common scanslation files
+	BOOL m_bCover; // V1.7 : prefer a file with "cover" in the name
 
 
 private:
@@ -719,48 +822,6 @@ private:
 	return TRUE;
 	}
 
-	__int64 FindThumbnailSortRAR(LPCTSTR pszFile)
-	{
-		CUnRar _r;
-		if (!_r.Open(pszFile)) return -1;
-		//skip solid (long processing time), volumes or encrypted file headers
-		//if (_r.IsArchiveSolid() || _r.IsArchiveVolume() || _r.IsArchiveEncryptedHeaders()) return -1;
-		if (_r.IsArchiveVolume() || _r.IsArchiveEncryptedHeaders()) return -1;
-
-		UINT64 _ps,_us;//my speed optimization?
-		CString prevname;
-		__int64 thumbindex=-1;
-		__int64 i=-1;//start at none (-1)
-
-		while (_r.ReadItemInfo())
-		{
-			i+=1;
-			_ps=_r.GetItemPackedSize64();
-			_us=_r.GetItemUnpackedSize64();
-
-			//skip directory/emtpy file/bigger than 32mb
-			if (_r.IsItemDirectory() || (_us>CBXMEM_MAXBUFFER_SIZE) || (_ps==0) || (_us==0))
-			 {_r.SkipItem();continue;}
-
-			//take only index of first alphabetical name
-			if (IsImage(_r.GetItemName()))
-			{	
-				//can't compare empty string
-				if (prevname.IsEmpty()) prevname=_r.GetItemName();
-				if (thumbindex<0) thumbindex=i;// assign thumbindex if already sorted
-				//sort by name
-				if (-1==StrCmpLogicalW(_r.GetItemName(), prevname))
-				{
-					thumbindex=i;
-					prevname=_r.GetItemName();
-				}
-			}
-		_r.SkipItem();//don't forget
-		}
-
-	return thumbindex;
-	}
-
 public:
 	void LoadRegistrySettings()
 	{
@@ -769,9 +830,13 @@ public:
 		if (ERROR_SUCCESS==_rk.Open(HKEY_CURRENT_USER, CBX_APP_KEY, KEY_READ))
 		{
 			if (ERROR_SUCCESS==_rk.QueryDWORDValue(_T("NoSort"), _d))
-				m_bSort=(_d == 0);
+				m_bSort=(_d == 0); // Sort is backward
 			if (ERROR_SUCCESS == _rk.QueryDWORDValue(_T("ShowIcon"), _d))
 				m_showIcon = (_d == 1);
+			if (ERROR_SUCCESS == _rk.QueryDWORDValue(_T("SkipScanlation"), _d))
+				m_bSkip = (_d == 1);
+			if (ERROR_SUCCESS == _rk.QueryDWORDValue(_T("PreferCover"), _d))
+				m_bCover = (_d == 1);
 		}
 	}
 
