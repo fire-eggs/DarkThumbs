@@ -223,6 +223,7 @@ public:
 	CCBXArchive()
 	{
 		m_bSort=TRUE;//default
+		m_showIcon = FALSE;
 		//GetRegSettings();
 		m_thumbSize.cx=m_thumbSize.cy=0;
 		m_cbxType=CBXTYPE_NONE;
