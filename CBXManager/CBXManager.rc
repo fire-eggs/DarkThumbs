@@ -18,7 +18,7 @@ FONT 8, "MS Shell Dlg 2", 400, 0, 1
 {
     GROUPBOX        "", IDC_STATIC, 59, 36, 55, 18
     CTEXT           "OK", IDC_STATIC, 76, 42, 23, 10, SS_CENTER, WS_EX_TRANSPARENT
-    CTEXT           "DarkThumbs Manager\nVersion 1.7", IDC_STATIC, 10, 9, 152, 25, SS_CENTER
+    CTEXT           "DarkThumbs Manager\nVersion 1.8", IDC_STATIC, 10, 9, 152, 25, SS_CENTER
     ICON            IDR_MAINFRAME, IDC_STATIC, 13, 11, 11, 10, SS_ICON
 }
 
@@ -28,7 +28,7 @@ STYLE DS_SETFONT | WS_BORDER | WS_CAPTION | WS_DLGFRAME | WS_SYSMENU
 CAPTION "DarkThumbs Manager"
 FONT 8, "Ms Shell Dlg"
 {
-    LTEXT           "DarkThumbs V1.7 - January 2023", IDC_VERSION_DESC, 30, 4, 145, 10, SS_LEFT, WS_EX_TRANSPARENT
+    LTEXT           "DarkThumbs V1.8 - April 2024", IDC_VERSION_DESC, 30, 4, 145, 10, SS_LEFT, WS_EX_TRANSPARENT
 
     GROUPBOX        "File types", IDC_TH_GROUP,       10, 15, 170, 120
 
@@ -79,10 +79,10 @@ VS_VERSION_INFO VERSIONINFO
         {
             VALUE "CompanyName", "\0"
             VALUE "FileDescription", "DarkThumbs Manager\0"
-            VALUE "FileVersion", "1.7.0.0\0"
-            VALUE "LegalCopyright", "© 2020-2023 by Kevin Routley\0"
+            VALUE "FileVersion", "1.8.0.0\0"
+            VALUE "LegalCopyright", "© 2020-2024 by Kevin Routley\0"
             VALUE "ProductName", "DarkThumbs\0"
-            VALUE "ProductVersion", "1.7.0.0\0"
+            VALUE "ProductVersion", "1.8.0.0\0"
         }
     }
     BLOCK "VarFileInfo"
