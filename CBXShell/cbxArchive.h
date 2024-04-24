@@ -324,8 +324,10 @@ public:
 	}
 #endif
 
-	HRESULT ExtractZip(HBITMAP* phBmpThumbnail)
+	HRESULT ExtractZip(HBITMAP* phBmpThumbnail, BOOL toSort)
 	{
+		//logit(_T("Z:sort:'%d'"), toSort);
+
 		CUnzip _z;
 		if (!_z.Open(m_cbxFile)) 
 			return E_FAIL;
@@ -366,7 +368,7 @@ public:
 			}
 
 			// Not a skipped image
-			if (!m_bSort)
+			if (!toSort)
 			{
 				foundIndex = i; // Not sorting: take the first non-skipped image file
 				break;
@@ -380,6 +382,8 @@ public:
 			// During sorting, force certain characters to sort later.
 			allLower.Replace(L"[", L"z");
 
+			//logit(_T("Z:'%ls'(%d) vs '%ls(%d)'"), allLower, i, prevname, foundIndex);
+
 			// So we're sorting. Want to take the first file in alphabetic order
 			if (prevname.IsEmpty())
 			{
@@ -389,8 +393,9 @@ public:
 			else if (-1 == StrCmpLogicalW(allLower, prevname))
 			{
 				foundIndex = i;
-				prevname = iName;
+				prevname = allLower;
 			}
+
 
 		}//for loop
 
@@ -429,6 +434,8 @@ public:
 
 	HRESULT ExtractRar(HBITMAP* phBmpThumbnail)
 	{
+		//logit(_T("R:sort:'%d'"), m_bSort);
+
 		CUnRar _r;
 
 		if (!_r.Open(m_cbxFile, FALSE))
@@ -490,16 +497,18 @@ public:
 				goto AtThumb; // Seeking cover file: take the first "cover"
 			}
 
+			//logit(_T("R:'%ls'(%d) vs '%ls(%d)'"), allLower, i, prevname, foundIndex);
+
 			// We're sorting. Want to take the first file in natural order.
 			if (prevname.IsEmpty())
 			{
-				prevname = iName;// can't compare empty string
+				prevname = allLower;// can't compare empty string
 				foundIndex = i;  // initialize when sorting
 			}
-			else if (-1 == StrCmpLogicalW(iName, prevname))
+			else if (-1 == StrCmpLogicalW(allLower, prevname))
 			{
 				foundIndex = i;
-				prevname = iName;
+				prevname = allLower;
 			}
 			_r.SkipItem();
 
@@ -544,7 +553,7 @@ public:
 	// IPersistFile::Load
 	HRESULT OnLoad(LPCOLESTR wszFile)
 	{
-		logit(_T("OnLoad"));
+		//logit(_T("OnLoad"));
 
 		//ATLTRACE("IPersistFile::Load\n");
 #ifndef UNICODE
@@ -561,7 +570,7 @@ public:
 	// IExtractImage::GetLocation(LPWSTR pszPathBuffer,	DWORD cchMax, DWORD *pdwPriority, const SIZE *prgSize, DWORD dwRecClrDepth, DWORD *pdwFlags)
 	HRESULT OnGetLocation(const SIZE *prgSize, DWORD *pdwFlags)
 	{
-		logit(_T("OnGetLocation (%d,%d)"), prgSize->cx, prgSize->cy);
+		//logit(_T("OnGetLocation (%d,%d)"), prgSize->cx, prgSize->cy);
 
 		//ATLTRACE("IExtractImage2::GetLocation\n");
 		m_thumbSize.cx=prgSize->cx;
@@ -623,7 +632,7 @@ try {
 		case CBXTYPE_ZIP:
 		case CBXTYPE_CBZ:
 			// NOTE: fallthrough from epub!
-			return ExtractZip(phBmpThumbnail);
+			return ExtractZip(phBmpThumbnail, m_bSort);
 		break;
 
 		case CBXTYPE_RAR:
