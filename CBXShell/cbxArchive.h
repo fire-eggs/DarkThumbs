@@ -182,16 +182,29 @@ public:
 
 	virtual int ProcessItemData(LPBYTE pBuf, ULONG dwBufSize)
 	{
+		logit(_T("PID: %ld"), dwBufSize);
 		if (m_pIs)
 		{
 			ULONG br=0;
-			if (S_OK==m_pIs->Write(pBuf, dwBufSize, &br))
-				if (br==dwBufSize) return 1;
+			if (S_OK == m_pIs->Write(pBuf, dwBufSize, &br))
+			{
+				if (br == dwBufSize) return 1;
+				else logit(_T("--write %ld"), br);
+			}
 		}
+		if (m_pBuf)
+		{
+			// The "problem cbr" files have 3 callbacks, data has to be appended
+			memcpy(m_pBuf, pBuf, dwBufSize);
+			m_pBuf += dwBufSize;
+			return 1;
+		}
+		logit(_T("PID: fail"));
 	return -1;
 	}
 
 	void SetIStream(IStream* pIs){_ASSERTE(pIs);m_pIs=pIs;}
+	void SetBuffer(LPBYTE pbuf) { _ASSERTE(pbuf); m_pBuf = pbuf; }
 
 private:
 	HANDLE m_harc;
@@ -199,6 +212,7 @@ private:
 	RAROpenArchiveDataEx m_arcinfo;
 	int m_ret;
 	IStream* m_pIs;
+	LPBYTE m_pBuf;
 	void _init()
 	{
 		m_harc=NULL;
@@ -514,34 +528,56 @@ public:
 
 		}
 
-		if (foundIndex < 0) return E_FAIL;
+		if (foundIndex < 0) 
+		{
+			logit(_T("R Fail 1")); return E_FAIL;
+		}
 
 		// Need to reposition the archive to the item of interest
 		// TODO why can't RAR be reset w/o closing and re-opening?
 		_r.Shutdown();
-		if (!_r.Open(m_cbxFile, FALSE)) return E_FAIL;
-		if (!_r.SkipItems(foundIndex)) return E_FAIL;
-		if (!_r.ReadItemInfo()) return E_FAIL;
+		if (!_r.Open(m_cbxFile, FALSE)) 
+		{
+			logit(_T("R Fail 2")); return E_FAIL;
+		}
+		if (!_r.SkipItems(foundIndex))
+		{
+			logit(_T("R Fail 3")); return E_FAIL;
+		}
+		if (!_r.ReadItemInfo())
+		{
+			logit(_T("R Fail 4")); return E_FAIL;
+		}
 
 AtThumb:
 		// _r is currently 'positioned' at the item desired
 
 		//create thumb
 		IStream* pIs = NULL;
-		HGLOBAL hG = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (SIZE_T)_r.GetItemUnpackedSize64());
+		UINT64 itemSize = _r.GetItemUnpackedSize64();
+		logit(_T("R: itemsize %ld"), itemSize);
+		HGLOBAL hG = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (UINT)itemSize);
 		//HRESULT hr;
 		if (hG)
 		{
+			LPVOID pBuf = ::GlobalLock(hG);
+			LPVOID origbuf = pBuf; // note that _r.ProcessItem() could modify the buffer pointer!
+
 			if (S_OK == CreateStreamOnHGlobal(hG, TRUE, (LPSTREAM*)&pIs))
 			{
-				_r.SetIStream(pIs);
+				//_r.SetIStream(pIs);
+				_r.SetIStream(NULL);
+				_r.SetBuffer((LPBYTE)pBuf);
 				if (_r.ProcessItem())
 					//if (_r.ProcessItemData((LPBYTE) hG, _r.GetItemUnpackedSize64()))
 				{
-					*phBmpThumbnail = ThumbnailFromIStream(pIs, &m_thumbSize, m_showIcon);
-					//hr = WICCreate32BitsPerPixelHBITMAP(pIs, phBmpThumbnail);
+					IStream* pImageStream = SHCreateMemStream((const BYTE*)origbuf, (UINT)itemSize);
+					HRESULT hr = WICCreate32BitsPerPixelHBITMAP(pImageStream, phBmpThumbnail);
+					pImageStream->Release();
+					//*phBmpThumbnail = ThumbnailFromIStream(pIs, &m_thumbSize, m_showIcon);
 				}
 			}
+			::GlobalUnlock(hG);
 		}
 		GlobalFree(hG);
 		pIs->Release();
@@ -848,6 +884,7 @@ public:
 			if (ERROR_SUCCESS == _rk.QueryDWORDValue(_T("PreferCover"), _d))
 				m_bCover = (_d == 1);
 		}
+		logit(_T("LRS: %d"), m_bSort);
 	}
 
 #ifdef _DEBUG
