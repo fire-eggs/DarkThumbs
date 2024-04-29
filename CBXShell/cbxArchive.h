@@ -285,8 +285,15 @@ public:
 				IStream* pIs = NULL;
 				if (S_OK == CreateStreamOnHGlobal(hG, TRUE, (LPSTREAM*)&pIs))//autofree hG
 				{
-					*phBmpThumbnail = ThumbnailFromIStream(pIs, &thumbSize, showIcon);
+					// Issue #84: never show archive icon for MOBI
+					//*phBmpThumbnail = ThumbnailFromIStream(pIs, &thumbSize, FALSE); // showIcon);
 					//hr = WICCreate32BitsPerPixelHBITMAP(pIs, phBmpThumbnail);
+
+					// Issue *86 use WIC for mobi
+					IStream* pImageStream = SHCreateMemStream((const BYTE*)pBuf, record->size);
+					HRESULT hr = WICCreate32BitsPerPixelHBITMAP(pImageStream, phBmpThumbnail);
+					pImageStream->Release();
+
 					pIs->Release();
 					pIs = NULL;
 				}
