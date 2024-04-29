@@ -341,9 +341,20 @@ void addIcon(HBITMAP* phBmpThumbnail)
 	if (*phBmpThumbnail)
 	{
 		HDC hdcMem = CreateCompatibleDC(NULL);
+
+		BITMAP bm;
+		int res2 = GetObject(*phBmpThumbnail, (int)sizeof(bm), &bm);
+		//logit(_T("[%d]Dim(%ld x %ld)"), res2, bm.bmWidth, bm.bmHeight);
+
+		// Issue #71: don't have the icon change size based on original image size
+		int outW = bm.bmWidth / 3;
+		int outH = bm.bmHeight / 5;
+		outW = outW > outH ? outH : outW; // same height/width
+		//outH = outH > outW ? outW : outH;
+
 		HGDIOBJ hbmOld = SelectObject(hdcMem, *phBmpThumbnail);
 		zipIcon = LoadIcon(_hInstance, MAKEINTRESOURCE(IDI_ICON1));
-		BOOL res = DrawIconEx(hdcMem, 0, 0, zipIcon, 150, 150, 0, NULL, DI_NORMAL);
+		BOOL res = DrawIconEx(hdcMem, 0, 10, zipIcon, outW, outW, 0, NULL, DI_NORMAL);
 		SelectObject(hdcMem, hbmOld);
 		DeleteDC(hdcMem);
 	}
