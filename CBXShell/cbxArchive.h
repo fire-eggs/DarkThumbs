@@ -673,8 +673,14 @@ try {
 
 		case CBXTYPE_RAR:
 		case CBXTYPE_CBR:
-			return ExtractRar(phBmpThumbnail);
-		break;
+			if (ExtractRar(phBmpThumbnail) != E_FAIL)
+			{
+				// Issue #87: show icon for RAR/CBR
+				if (m_showIcon)
+					addIcon(phBmpThumbnail);
+				return S_OK;
+			}
+			break;
 
 		case CBXTYPE_FB:
 			return ExtractFBCover(m_cbxFile, phBmpThumbnail);
