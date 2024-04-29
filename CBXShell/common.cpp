@@ -33,6 +33,12 @@ BOOL IsImage(LPCTSTR szFile)
 	if (StrEqual(_e, _T(".dng"))) return TRUE;
 	if (StrEqual(_e, _T(".cr2"))) return TRUE;
 
+	// Issues # 83, # 82
+	if (StrEqual(_e, _T(".heif"))) return TRUE;
+	if (StrEqual(_e, _T(".heic"))) return TRUE;
+	if (StrEqual(_e, _T(".avif"))) return TRUE;
+	if (StrEqual(_e, _T(".jxl"))) return TRUE;
+
 	return FALSE;
 }
 
