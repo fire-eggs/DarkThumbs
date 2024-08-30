@@ -23,12 +23,12 @@ FONT 8, "MS Shell Dlg 2", 400, 0, 1
 }
 
 // X,Y,W,H
-IDD_MAINDLG DIALOG 0, 0, 190, 230
+IDD_MAINDLG DIALOG 0, 0, 190, 265
 STYLE DS_SETFONT | WS_BORDER | WS_CAPTION | WS_DLGFRAME | WS_SYSMENU
 CAPTION "DarkThumbs Manager"
 FONT 8, "Ms Shell Dlg"
 {
-    LTEXT           "DarkThumbs V1.9 - May 2024", IDC_VERSION_DESC, 30, 4, 145, 10, SS_LEFT, WS_EX_TRANSPARENT
+    LTEXT           "DarkThumbs V2.0 - Aug 2024", IDC_VERSION_DESC, 30, 4, 145, 10, SS_LEFT, WS_EX_TRANSPARENT
 
     GROUPBOX        "File types", IDC_TH_GROUP,       10, 15, 170, 120
 
@@ -39,17 +39,19 @@ FONT 8, "Ms Shell Dlg"
     AUTOCHECKBOX    "Kindle ebooks (MOBI, AZW, AZW3)", IDC_CB_MOBI, 20, 88, 150, 10
     AUTOCHECKBOX    "RAR Archives",       IDC_CB_RAR,  20, 103, 150, 10
     AUTOCHECKBOX    "ZIP Archives", IDC_CB_ZIP,        20, 118, 150, 10
+    AUTOCHECKBOX    "7z Archives",  IDC_CB_7Z,         20, 133, 150, 10  // V2.0
+    AUTOCHECKBOX    "DJVU", IDC_CB_DJVU, 20, 145, 150, 10  // V2.0
 
-    GROUPBOX        "Advanced", IDC_SORT_ADVOPTGROUP,  10, 135, 170, 70
+    GROUPBOX        "Advanced", IDC_SORT_ADVOPTGROUP,  10, 165, 170, 70
 
-    AUTOCHECKBOX    "Skip Scanslation files",     IDC_CB_SKIP, 20, 147, 155, 8
-    AUTOCHECKBOX    "Sort images alphabetically", IDC_CB_SORT, 20, 160, 155, 8
-    AUTOCHECKBOX    "Prefer 'cover' file",        IDC_CB_COVER, 30, 173, 140, 8
-	AUTOCHECKBOX    "Show archive indicator",     IDC_CB_SHOWICON, 20, 185, 150, 8
+    AUTOCHECKBOX    "Skip Scanslation files",     IDC_CB_SKIP, 20, 177, 155, 8
+    AUTOCHECKBOX    "Sort images alphabetically", IDC_CB_SORT, 20, 192, 155, 8
+    AUTOCHECKBOX    "Prefer 'cover' file",        IDC_CB_COVER, 30, 207, 140, 8
+	AUTOCHECKBOX    "Show archive indicator",     IDC_CB_SHOWICON, 20, 222, 150, 8
 
-    DEFPUSHBUTTON   "OK",         IDOK,   10, 210, 50, 14
-    PUSHBUTTON      "Cancel", IDCANCEL,   70, 210, 50, 14
-    PUSHBUTTON      "Apply",  IDC_APPLY, 130, 210, 50, 14
+    DEFPUSHBUTTON   "OK",         IDOK,   10, 240, 50, 14
+    PUSHBUTTON      "Cancel", IDCANCEL,   70, 240, 50, 14
+    PUSHBUTTON      "Apply",  IDC_APPLY, 130, 240, 50, 14
 }
 
 
@@ -65,8 +67,8 @@ IDR_MAINFRAME      ICON           "DarkThumbsIcon.ico"
 // Version Information resources
 //
 VS_VERSION_INFO VERSIONINFO
-    FILEVERSION     1,7,0,0
-    PRODUCTVERSION  1,7,0,0
+    FILEVERSION     2,0,0,0
+    PRODUCTVERSION  2,0,0,0
     FILEOS          VOS__WINDOWS32
     FILETYPE        VFT_APP
     FILESUBTYPE     VFT2_UNKNOWN
@@ -79,10 +81,10 @@ VS_VERSION_INFO VERSIONINFO
         {
             VALUE "CompanyName", "\0"
             VALUE "FileDescription", "DarkThumbs Manager\0"
-            VALUE "FileVersion", "1.9.0.0\0"
+            VALUE "FileVersion", "2.0.0.0\0"
             VALUE "LegalCopyright", "© 2020-2024 by Kevin Routley\0"
             VALUE "ProductName", "DarkThumbs\0"
-            VALUE "ProductVersion", "1.9.0.0\0"
+            VALUE "ProductVersion", "2.0.0.0\0"
         }
     }
     BLOCK "VarFileInfo"

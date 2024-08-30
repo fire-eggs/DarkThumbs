@@ -20,7 +20,6 @@
 HBITMAP ThumbnailFromIStream(IStream* pIs, const LPSIZE pThumbSize, bool showIcon);
 BOOL IsImage(LPCTSTR szFile);
 HRESULT WICCreate32BitsPerPixelHBITMAP(IStream* pstm, HBITMAP* phbmp);
-HRESULT WICCreate32BitsPerPixelHBITMAP_log(IStream* pstm, HBITMAP* phbmp);
 HRESULT GetStreamFromStringA(PCSTR pszImageName, IStream** ppImageStream, DWORD lenLimit);
 
 extern void __cdecl logit(LPCWSTR format, ...);
@@ -298,6 +297,8 @@ HRESULT ExtractEpub(CString m_cbxFile, HBITMAP* phBmpThumbnail, SIZE m_thumbSize
 	HGLOBAL hGContainer = NULL;
 
 	std::string xmlContent, rootpath, coverfile;
+	int dex = -1;
+	int i = -1;
 
 	CUnzip _z;
 	if (!_z.Open(m_cbxFile)) return E_FAIL;
@@ -319,7 +320,6 @@ HRESULT ExtractEpub(CString m_cbxFile, HBITMAP* phBmpThumbnail, SIZE m_thumbSize
 	}
 
 	// Get the root file itself
-	int dex = -1;
 	ZIPENTRY ze;
 	memset(&ze, 0, sizeof(ZIPENTRY));
 	FindZipItem(_z.getHZIP(), A2T(rootfile.c_str()), false, &dex, &ze);
@@ -327,7 +327,7 @@ HRESULT ExtractEpub(CString m_cbxFile, HBITMAP* phBmpThumbnail, SIZE m_thumbSize
 		goto test_coverfile; // Root file not found
 
 	_z.GetItem(dex);
-	int i = dex;
+	i = dex;
 
 	hGContainer = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (SIZE_T)_z.GetItemUnpackedSize());
 	if (hGContainer)

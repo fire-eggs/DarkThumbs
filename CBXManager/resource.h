@@ -23,3 +23,5 @@
 #define IDC_VERSION_DESC      57686
 #define IDC_CB_SKIP           57687           
 #define IDC_CB_COVER          57688
+#define IDC_CB_7Z                               57689  // V2.0
+#define IDC_CB_DJVU                             57690  // V2.0

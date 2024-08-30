@@ -5,6 +5,11 @@
 
 #include "resource.h"   // zip icon
 
+//#define BIT7Z_USE_NATIVE_STRING 1
+
+#include "bitfileextractor.hpp"
+using namespace bit7z;
+
 #define LOGDBG
 #define LOGERR
 
@@ -274,42 +279,6 @@ HRESULT ConvertBitmapSourceTo32BPPHBITMAP(IWICBitmapSource* pBitmapSource,
 	return hr;
 }
 
-// For debugging purposes
-#if 0
-HRESULT WICCreate32BitsPerPixelHBITMAP_log(IStream* pstm, HBITMAP* phbmp)
-{
-	logit(L"WC32BPPH 0");
-
-	*phbmp = NULL;
-
-	IWICImagingFactory* pImagingFactory;
-	HRESULT hr = CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pImagingFactory));
-	if (SUCCEEDED(hr))
-	{
-		logit(L"WC32BPPH 1");
-
-		IWICBitmapDecoder* pDecoder;
-		hr = pImagingFactory->CreateDecoderFromStream(pstm, &GUID_VendorMicrosoft, WICDecodeMetadataCacheOnDemand, &pDecoder);
-		if (SUCCEEDED(hr))
-		{
-			logit(L"WC32BPPH 2");
-			IWICBitmapFrameDecode* pBitmapFrameDecode;
-			hr = pDecoder->GetFrame(0, &pBitmapFrameDecode);
-			if (SUCCEEDED(hr))
-			{
-				logit(L"WC32BPPH 3");
-				hr = ConvertBitmapSourceTo32BPPHBITMAP(pBitmapFrameDecode, pImagingFactory, phbmp);
-				pBitmapFrameDecode->Release();
-			}
-			pDecoder->Release();
-		}
-		pImagingFactory->Release();
-	}
-	logit(L"WC32BPPH 4");
-	return hr;
-}
-#endif
-
 HRESULT WICCreate32BitsPerPixelHBITMAP(IStream* pstm, HBITMAP* phbmp)
 {
 	*phbmp = NULL;
@@ -344,13 +313,11 @@ void addIcon(HBITMAP* phBmpThumbnail)
 
 		BITMAP bm;
 		int res2 = GetObject(*phBmpThumbnail, (int)sizeof(bm), &bm);
-		//logit(_T("[%d]Dim(%ld x %ld)"), res2, bm.bmWidth, bm.bmHeight);
 
 		// Issue #71: don't have the icon change size based on original image size
 		int outW = bm.bmWidth / 3;
 		int outH = bm.bmHeight / 5;
 		outW = outW > outH ? outH : outW; // same height/width
-		//outH = outH > outW ? outW : outH;
 
 		HGDIOBJ hbmOld = SelectObject(hdcMem, *phBmpThumbnail);
 		zipIcon = LoadIcon(_hInstance, MAKEINTRESOURCE(IDI_ICON1));
@@ -358,4 +325,44 @@ void addIcon(HBITMAP* phBmpThumbnail)
 		SelectObject(hdcMem, hbmOld);
 		DeleteDC(hdcMem);
 	}
+}
+
+HRESULT doBmp(const std::wstring& path, int index, const BitInFormat* fmt, uint64_t size, HBITMAP * phBmpThumbnail)
+{
+	vector<byte_t> bytes;
+
+	try
+	{
+		Bit7zLibrary lib{ _T("7z.dll") };
+		BitFileExtractor bex(lib);
+		bex.extract(path, bytes, index);
+	}
+	catch (const BitException& ex)
+	{
+		logit(_T("doBmp: bitexception [%ld] %ls %s"), ex.hresultCode(), ex.what(), ex.what());
+		return E_FAIL;
+	}
+
+	//create thumb
+	IStream* pIs = NULL;
+	HRESULT hr = E_FAIL;
+	HGLOBAL hG = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (UINT)size);
+	if (hG)
+	{
+		LPVOID pBuf = ::GlobalLock(hG);
+		LPVOID origbuf = pBuf; // note that _r.ProcessItem() could modify the buffer pointer!
+
+		if (S_OK == CreateStreamOnHGlobal(hG, TRUE, (LPSTREAM*)&pIs))
+		{
+			std::copy(bytes.begin(), bytes.end(), (BYTE *)origbuf);
+			IStream* pImageStream = SHCreateMemStream((const BYTE*)origbuf, (UINT)size);
+			hr = WICCreate32BitsPerPixelHBITMAP(pImageStream, phBmpThumbnail);
+			pImageStream->Release();
+		}
+		::GlobalUnlock(hG);
+	}
+	GlobalFree(hG);
+	pIs->Release();
+
+	return ((*phBmpThumbnail) ? S_OK : E_FAIL);
 }

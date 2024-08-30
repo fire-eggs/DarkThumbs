@@ -41,6 +41,12 @@
     <ClCompile Include="fb.cpp">
       <Filter>CBX</Filter>
     </ClCompile>
+    <ClCompile Include="sevenZip.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="djvu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="StdAfx.h">

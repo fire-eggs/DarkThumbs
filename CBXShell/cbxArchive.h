@@ -48,7 +48,13 @@
 #include "debugapi.h"
 #endif
 
-#define CBXMEM_MAXBUFFER_SIZE 33554432 //32mb
+#include "bitformat.hpp"
+using namespace bit7z;
+extern int Generic(const std::wstring& path, BOOL sort, BOOL skip, BOOL cover, uint64_t*, const BitInFormat* fmt); // TODO header
+extern HRESULT doBmp(const std::wstring& path, int index, const BitInFormat* fmt, uint64_t size, HBITMAP* phBmpThumbnail); // TODO header
+extern int Foo(CStringW origpath, BOOL sort, BOOL skip, BOOL cover, const BitInFormat* fmt, HBITMAP* phBmpThumbnail);
+
+
 #define CBXTYPE int
 #define CBXTYPE_NONE 0
 #define CBXTYPE_ZIP  1
@@ -60,6 +66,8 @@
 #define CBXTYPE_MOBI 6
 #endif
 #define CBXTYPE_FB   7
+#define CBXTYPE_7Z   8
+#define CBXTYPE_DJVU 9
 
 #define CBX_APP_KEY _T("Software\\DarkThumbs\\{9E6ECB90-5A61-42BD-B851-D3297D9C7F39}")
 
@@ -73,6 +81,7 @@ HRESULT WICCreate32BitsPerPixelHBITMAP(IStream* pstm, HBITMAP* phbmp);
 void addIcon(HBITMAP* phBmpThumbnail);
 
 HRESULT ExtractFBCover(CString filepath, HBITMAP* phBmpThumbnail);
+HRESULT ExtractDjvuCover(CString filepath, HBITMAP* phBmpThumbnail);
 
 extern void __cdecl logit(LPCWSTR format, ...);
 
@@ -106,7 +115,11 @@ public:
 		m_arcinfo.CmtBufSize=cmtBufSize;
 
 		m_harc=RAROpenArchiveEx(&m_arcinfo);
-		if (m_harc==NULL || m_arcinfo.OpenResult!=0) return FALSE;
+		if (m_harc == NULL || m_arcinfo.OpenResult != 0)
+		{
+			logit(_T("R:open result:'%d'"), m_arcinfo.OpenResult);
+			return FALSE;
+		}
 
 		if (password) RARSetPassword(m_harc,password);
 		RARSetCallback(m_harc, __rarCallbackProc, (LPARAM)this);
@@ -290,7 +303,7 @@ public:
 					//hr = WICCreate32BitsPerPixelHBITMAP(pIs, phBmpThumbnail);
 
 					// Issue *86 use WIC for mobi
-					IStream* pImageStream = SHCreateMemStream((const BYTE*)pBuf, record->size);
+					IStream* pImageStream = SHCreateMemStream((const BYTE*)pBuf, (UINT)record->size);
 					HRESULT hr = WICCreate32BitsPerPixelHBITMAP(pImageStream, phBmpThumbnail);
 					pImageStream->Release();
 
@@ -345,6 +358,7 @@ public:
 	}
 #endif
 
+#if 0 // V2.0
 	HRESULT ExtractZip(HBITMAP* phBmpThumbnail, BOOL toSort)
 	{
 		//logit(_T("Z:sort:'%d'"), toSort);
@@ -452,19 +466,27 @@ public:
 
 		return ((*phBmpThumbnail) ? S_OK : E_FAIL);
 	}
+#endif
 
+#if 0 // V2.0
 	HRESULT ExtractRar(HBITMAP* phBmpThumbnail)
 	{
-		//logit(_T("R:sort:'%d'"), m_bSort);
+		logit(_T("R:sort:'%d' icon: %d"), m_bSort, m_showIcon);
 
 		CUnRar _r;
 
 		if (!_r.Open(m_cbxFile, FALSE))
+		{
+			logit(_T("R:open faile"));
 			return E_FAIL;
+		}
 
 		// Skip volumes or encrypted
-		if (_r.IsArchiveVolume() || _r.IsArchiveEncryptedHeaders()) 
+		if (_r.IsArchiveVolume() || _r.IsArchiveEncryptedHeaders())
+		{
+			logit(_T("R:vol skip"));
 			return E_FAIL;
+		}
 
 		CString prevname; // sorting
 		int foundIndex = -1;
@@ -590,6 +612,7 @@ AtThumb:
 		pIs->Release();
 		return ((*phBmpThumbnail) ? S_OK : E_FAIL);
 	}
+#endif
 
 public:
 	////////////////////////////////////////
@@ -656,6 +679,9 @@ try {
 #ifdef _WIN64
 		case CBXTYPE_MOBI:
 			return ExtractMobiCover(m_cbxFile, phBmpThumbnail, m_showIcon);
+
+		case CBXTYPE_DJVU:
+			return ExtractDjvuCover(m_cbxFile, phBmpThumbnail);
 #endif
 
 		case CBXTYPE_EPUB:
@@ -674,19 +700,31 @@ try {
 
 		case CBXTYPE_ZIP:
 		case CBXTYPE_CBZ:
+#if 0
 			// NOTE: fallthrough from epub!
 			return ExtractZip(phBmpThumbnail, m_bSort);
-		break;
+			break;
+#endif
+			return Foo(m_cbxFile, m_bSort, m_bSkip, m_bCover, &BitFormat::Zip, phBmpThumbnail);
+			break;
 
 		case CBXTYPE_RAR:
 		case CBXTYPE_CBR:
+#if 0
 			if (ExtractRar(phBmpThumbnail) != E_FAIL)
 			{
 				// Issue #87: show icon for RAR/CBR
 				if (m_showIcon)
 					addIcon(phBmpThumbnail);
 				return S_OK;
-			}
+		}
+			break;
+#endif
+			return Foo(m_cbxFile, m_bSort, m_bSkip, m_bCover, &BitFormat::Rar, phBmpThumbnail);
+			break;
+
+		case CBXTYPE_7Z:
+			return Foo(m_cbxFile, m_bSort, m_bSkip, m_bCover, &BitFormat::SevenZip, phBmpThumbnail);
 			break;
 
 		case CBXTYPE_FB:
@@ -829,8 +867,13 @@ private:
 		if (StrEqual(szExt, _T(".mobi"))) return CBXTYPE_MOBI;
 		if (StrEqual(szExt, _T(".azw"))) return CBXTYPE_MOBI;
 		if (StrEqual(szExt, _T(".azw3"))) return CBXTYPE_MOBI;
+		if (StrEqual(szExt, _T(".djvu"))) return CBXTYPE_DJVU;
+		if (StrEqual(szExt, _T(".djv")))  return CBXTYPE_DJVU;
 #endif
 		if (StrEqual(szExt, _T(".fb2"))) return CBXTYPE_FB;
+		if (StrEqual(szExt, _T(".7z"))) return CBXTYPE_7Z;
+		if (StrEqual(szExt, _T(".cbz"))) return CBXTYPE_7Z;
+
 
 		return CBXTYPE_NONE;
 	}
