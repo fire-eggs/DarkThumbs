@@ -44,8 +44,6 @@ int Generic(const std::wstring& path, BOOL sort, BOOL skip, BOOL cover, uint64_t
 
         auto arc_items = bai.items();
 
-        // TODO sort option
-
         bool firstFile = true;
         CString prevname;
         for (auto& item : arc_items)
