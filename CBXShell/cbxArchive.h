@@ -52,7 +52,7 @@
 using namespace bit7z;
 extern int Generic(const std::wstring& path, BOOL sort, BOOL skip, BOOL cover, uint64_t*, const BitInFormat* fmt); // TODO header
 extern HRESULT doBmp(const std::wstring& path, int index, const BitInFormat* fmt, uint64_t size, HBITMAP* phBmpThumbnail); // TODO header
-extern int Foo(CStringW origpath, BOOL sort, BOOL skip, BOOL cover, const BitInFormat* fmt, HBITMAP* phBmpThumbnail);
+extern int ExtractGenericArchive(CStringW origpath, BOOL sort, BOOL skip, BOOL cover, const BitInFormat* fmt, HBITMAP* phBmpThumbnail);
 
 
 #define CBXTYPE int
@@ -725,7 +725,7 @@ try {
 			return ExtractZip(phBmpThumbnail, m_bSort);
 			break;
 #endif
-			return Foo(m_cbxFile, m_bSort, m_bSkip, m_bCover, &BitFormat::Zip, phBmpThumbnail);
+			return ExtractGenericArchive(m_cbxFile, m_bSort, m_bSkip, m_bCover, &BitFormat::Zip, phBmpThumbnail);
 			break;
 
 		case CBXTYPE_RAR:
@@ -740,11 +740,11 @@ try {
 		}
 			break;
 #endif
-			return Foo(m_cbxFile, m_bSort, m_bSkip, m_bCover, &BitFormat::Rar, phBmpThumbnail);
+			return ExtractGenericArchive(m_cbxFile, m_bSort, m_bSkip, m_bCover, &BitFormat::Rar, phBmpThumbnail);
 			break;
 
 		case CBXTYPE_7Z:
-			return Foo(m_cbxFile, m_bSort, m_bSkip, m_bCover, &BitFormat::SevenZip, phBmpThumbnail);
+			return ExtractGenericArchive(m_cbxFile, m_bSort, m_bSkip, m_bCover, &BitFormat::SevenZip, phBmpThumbnail);
 			break;
 
 		case CBXTYPE_FB:

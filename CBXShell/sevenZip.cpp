@@ -112,7 +112,7 @@ int Generic(const std::wstring& path, BOOL sort, BOOL skip, BOOL cover, uint64_t
 
 extern HRESULT doBmp(const std::wstring& path, int index, const BitInFormat* fmt, uint64_t size, HBITMAP* phBmpThumbnail); // TODO header
 
-int Foo(CStringW origpath, BOOL sort, BOOL skip, BOOL cover, const BitInFormat* fmt, HBITMAP* phBmpThumbnail)
+int ExtractGenericArchive(CStringW origpath, BOOL sort, BOOL skip, BOOL cover, const BitInFormat* fmt, HBITMAP* phBmpThumbnail)
 {
     const size_t newsizew = (origpath.GetLength() + 1) * 2;
     wchar_t* n2stringw = new wchar_t[newsizew];
