@@ -339,7 +339,7 @@ HRESULT doBmp(const std::wstring& path, int index, const BitInFormat* fmt, uint6
 	}
 	catch (const BitException& ex)
 	{
-		logit(_T("doBmp: bitexception [%ld] %ls %s"), ex.hresultCode(), ex.what(), ex.what());
+		logit(_T("doBmp: bitexception [%lx] %ls %s"), ex.hresultCode(), ex.what(), ex.what());
 		return E_FAIL;
 	}
 

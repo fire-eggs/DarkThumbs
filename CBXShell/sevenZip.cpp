@@ -104,7 +104,7 @@ int Generic(const std::wstring& path, BOOL sort, BOOL skip, BOOL cover, uint64_t
     }
     catch (const BitException& ex)
     {
-        logit(_T("7z: bitexception [%ld] %ls"), ex.hresultCode(), ex.what());
+        logit(_T("7z: bitexception [%lx] %ls"), ex.hresultCode(), ex.what());
         res = -1;
     }
     return res; // Not actually a result, is the item index
