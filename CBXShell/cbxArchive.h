@@ -619,6 +619,26 @@ public:
 	// IPersistFile::Load
 	HRESULT OnLoad(LPCOLESTR wszFile)
 	{
+		logit(_T("OnLoad 1"));
+
+		auto dll7z = LoadLibrary(_T("C:\\Program Files\\DarkThumbs\\7z.dll"));
+		if (!dll7z)
+		{
+			logit(_T("OnLoad: LoadLibrary Fail"));
+		}
+		else
+		{
+			typedef HRESULT(__stdcall* SCS_t)(int);
+			auto func = (SCS_t)GetProcAddress(dll7z, "SetCaseSensitive");
+			if (!func)
+			{
+				logit(_T("OnLoad: GetProcAddress Fail"));
+			}
+//			func(1);
+		}
+
+		logit(_T("OnLoad 2"));
+
 		//logit(_T("OnLoad"));
 
 		//ATLTRACE("IPersistFile::Load\n");
