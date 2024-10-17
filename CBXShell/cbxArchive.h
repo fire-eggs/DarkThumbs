@@ -363,7 +363,7 @@ public:
 	// IPersistFile::Load
 	HRESULT OnLoad(LPCOLESTR wszFile)
 	{
-		logit(_T("OnLoad 1"));
+//		logit(_T("OnLoad 1"));
 
 		auto dll7z = LoadLibrary(_T("C:\\Program Files\\DarkThumbs\\7z.dll"));
 		if (!dll7z)
@@ -381,7 +381,7 @@ public:
 //			func(1);
 		}
 
-		logit(_T("OnLoad 2"));
+//		logit(_T("OnLoad 2"));
 
 		//logit(_T("OnLoad"));
 
