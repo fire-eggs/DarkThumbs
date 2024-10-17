@@ -52,6 +52,10 @@ int Generic(const std::wstring& path, BOOL sort, BOOL skip, BOOL cover, uint64_t
                 continue;
 
             CStringW iName = CStringW(item.name().c_str());
+            CStringW iPath = CStringW(item.path().c_str());
+
+            if (iPath.Find(L"__MACOSX") != -1) continue; // Ignore everything in __MACOSX
+
             auto allLower = iName.MakeLower();
 
             // TODO issue with manga like "death note"
