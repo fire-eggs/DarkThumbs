@@ -28,7 +28,7 @@ STYLE DS_SETFONT | WS_BORDER | WS_CAPTION | WS_DLGFRAME | WS_SYSMENU
 CAPTION "DarkThumbs Manager"
 FONT 8, "Ms Shell Dlg"
 {
-    LTEXT           "DarkThumbs V2.0 - Aug 2024", IDC_VERSION_DESC, 30, 4, 145, 10, SS_LEFT, WS_EX_TRANSPARENT
+    LTEXT           "DarkThumbs V2.0 - Oct 2024", IDC_VERSION_DESC, 30, 4, 145, 10, SS_LEFT, WS_EX_TRANSPARENT
 
     GROUPBOX        "File types", IDC_TH_GROUP,       10, 15, 170, 120
 
