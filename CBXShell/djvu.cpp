@@ -153,14 +153,14 @@ HRESULT ExtractDjvuCover(CString filepath, HBITMAP* phBmpThumbnail)
     }
     if (!(doc = ddjvu_document_create_by_filename(ctx, inputfilename.m_psz, TRUE)))
     {
-        logit(_T("Cannot open djvu document '%s'."), inputfilename.m_psz);
+        logit(_T("Cannot open djvu document '%ls'."), filepath);
         goto finish;
     }
     while (!ddjvu_document_decoding_done(doc))
         handle(TRUE);
     if (ddjvu_document_decoding_error(doc))
     {
-        logit(_T("Cannot decode djvu document '%s'."), inputfilename.m_psz);
+        logit(_T("Cannot decode djvu document '%ls'."), filepath);
         goto finish;
     }
 
@@ -168,7 +168,7 @@ HRESULT ExtractDjvuCover(CString filepath, HBITMAP* phBmpThumbnail)
     ddjvu_page_t* page;
     if (!(page = ddjvu_page_create_by_pageno(doc, 0)))
     {
-        logit(_T("Cannot access page 1 in djvu document '%s'."), inputfilename.m_psz);
+        logit(_T("Cannot access page 1 in djvu document '%ls'."), filepath);
         goto finish;
     }
     while (!ddjvu_page_decoding_done(page))
@@ -176,15 +176,10 @@ HRESULT ExtractDjvuCover(CString filepath, HBITMAP* phBmpThumbnail)
     if (ddjvu_page_decoding_error(page))
     {
         handle(FALSE);
-        logit(_T("Cannot decode page 1 in djvu document '%s'."), inputfilename.m_psz);
+        logit(_T("Cannot decode page 1 in djvu document '%ls'."), filepath);
         ddjvu_page_release(page);
         goto finish;
     }
-
-    // render(page, pageno);
-    logit(_T("1render page '%s'"), inputfilename.m_psz);
-    logit(_T("2render page '%ls'"), inputfilename.m_psz);
-    logit(_T("3render page '%ls'"), filepath);
 
     res = renderPage(page, phBmpThumbnail);
     ddjvu_page_release(page);
