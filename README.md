@@ -1,5 +1,6 @@
 # DarkThumbs
 Thumbnail preview support for ebooks and various archive formats in Windows File Explorer. V2.0 adds DJVU and 7Z/CB7 support!
+V2.1 fixes broken CB7 support, adding it as a selectable option.
 
 ## Screenshots
 ![V2.0 Demo](demo.jpg)
@@ -15,7 +16,7 @@ Thumbnail preview support for ebooks and various archive formats in Windows File
 - CBZ
 - CBR
 - RAR
-- ZIP
+- ZIP (ZIP, PHZ, GGB)
 
 ## Minimium system requirements
 Windows 7/8/8.1/10/11 (64-bit)
