@@ -97,6 +97,7 @@ void CMainDlg::InitUI()
 	Button_SetCheck(GetDlgItem(IDC_CB_FB),   m_reg.HasTH(CBX_FB2));
 	Button_SetCheck(GetDlgItem(IDC_CB_7Z),   m_reg.HasTH(CBX_7Z));
 	Button_SetCheck(GetDlgItem(IDC_CB_DJVU), m_reg.HasTH(CBX_DJVU));
+	Button_SetCheck(GetDlgItem(IDC_CB_CB7),  m_reg.HasTH(CBX_CB7));  // V2.1
 
 	Button_SetCheck(GetDlgItem(IDC_CB_SHOWICON), m_reg.IsShowIconOpt());//CBX_SHOWICON
 	Button_SetCheck(GetDlgItem(IDC_CB_SORT), m_reg.IsSortOpt());//CBX_SORT
@@ -151,6 +152,17 @@ void CMainDlg::OnApplyImpl()
 		bRefresh=TRUE;
 		m_reg.SetHandlers(CBX_ZIP, bRet);
 	}
+	if (bRet != m_reg.HasTH(CBX_PHZ))
+	{
+		bRefresh = TRUE;
+		m_reg.SetHandlers(CBX_PHZ, bRet);
+	}
+	if (bRet != m_reg.HasTH(CBX_GGB))
+	{
+		bRefresh = TRUE;
+		m_reg.SetHandlers(CBX_GGB, bRet);
+	}
+
 	bRet = (BST_CHECKED == Button_GetCheck(GetDlgItem(IDC_CB_EPUB)));
 	if (bRet != m_reg.HasTH(CBX_EPUB))
 	{
@@ -213,6 +225,12 @@ void CMainDlg::OnApplyImpl()
 	{
 		bRefresh = TRUE;
 		m_reg.SetHandlers(CBX_DJV, bRet);
+	}
+	bRet = (BST_CHECKED == Button_GetCheck(GetDlgItem(IDC_CB_CB7))); // V2.1
+	if (bRet != m_reg.HasTH(CBX_CB7))
+	{
+		bRefresh = TRUE;
+		m_reg.SetHandlers(CBX_CB7, bRet);
 	}
 
 	if (bRefresh)

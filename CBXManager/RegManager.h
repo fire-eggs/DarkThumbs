@@ -30,7 +30,10 @@
 #define CBX_7ZIP_KEY    _T("SOFTWARE\\Classes\\.7Z\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
 #define CBX_DJVU_KEY    _T("SOFTWARE\\Classes\\.DJVU\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
 #define CBX_DJV_KEY     _T("SOFTWARE\\Classes\\.DJV\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
- 
+#define CBX_CB7TH_KEY   _T("SOFTWARE\\Classes\\.CB7\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
+#define CBX_PHZ_KEY     _T("SOFTWARE\\Classes\\.PHZ\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
+#define CBX_GGB_KEY     _T("SOFTWARE\\Classes\\.GGB\\shellex\\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}")
+
 // infotip handler keys
 #define CBX_ZIPIH_KEY _T("SOFTWARE\\Classes\\.ZIP\\shellex\\{00021500-0000-0000-C000-000000000046}")
 #define CBX_CBZIH_KEY _T("SOFTWARE\\Classes\\.CBZ\\shellex\\{00021500-0000-0000-C000-000000000046}")
@@ -53,6 +56,9 @@
 #define CBX_7Z   10  // V2.0
 #define CBX_DJVU 11  // V2.0
 #define CBX_DJV  12  // V2.0
+#define CBX_CB7  13  // V2.1
+#define CBX_PHZ  14  // V2.1
+#define CBX_GGB  15  // V2.1
 
 #define SORT_KEY L"NoSort"
 #define SKIP_KEY L"SkipScanlation"
@@ -188,6 +194,10 @@ public:
 		case CBX_7Z: return CBX_7ZIP_KEY;
 		case CBX_DJVU: return CBX_DJVU_KEY;
 		case CBX_DJV:  return CBX_DJV_KEY;
+		case CBX_CB7: return CBX_CB7TH_KEY; // V2.1
+		case CBX_PHZ: return CBX_PHZ_KEY; // V2.1
+		case CBX_GGB: return CBX_GGB_KEY; // V2.1
+
 		default:break;
 		}
 	return NULL;

@@ -622,7 +622,8 @@ private:
 #endif
 		if (StrEqual(szExt, _T(".fb2"))) return CBXTYPE_FB;
 		if (StrEqual(szExt, _T(".7z"))) return CBXTYPE_7Z;
-		if (StrEqual(szExt, _T(".cbz"))) return CBXTYPE_7Z;
+		if (StrEqual(szExt, _T(".cb7"))) return CBXTYPE_7Z;
+		if (StrEqual(szExt, _T(".ggb"))) return CBXTYPE_ZIP;
 
 
 		return CBXTYPE_NONE;

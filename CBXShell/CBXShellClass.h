@@ -73,7 +73,16 @@ public:
 	STDMETHOD(Extract)(HBITMAP* phBmpThumbnail) 
 	{ 
 		HRESULT res = m_cbx.OnExtract(phBmpThumbnail); 
-		if (res != S_OK) logit(L"*****Fail");
+		if (res != S_OK)
+		{
+			logit(L"*****Fail");
+		}
+		else
+		{
+			BITMAP bm;
+			GetObject(*phBmpThumbnail, (int)sizeof(bm), &bm);
+			logit(_T("   img hw (%d, %d)"), bm.bmHeight, bm.bmWidth);
+		}
 		return res;
 	}
 	// IExtractImage2

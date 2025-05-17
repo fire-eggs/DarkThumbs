@@ -25,3 +25,4 @@
 #define IDC_CB_COVER          57688
 #define IDC_CB_7Z                               57689  // V2.0
 #define IDC_CB_DJVU                             57690  // V2.0
+#define IDC_CB_CB7                              57691  // V2.1
